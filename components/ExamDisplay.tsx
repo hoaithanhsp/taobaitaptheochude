@@ -91,7 +91,7 @@ export const ExamDisplay: React.FC<ExamDisplayProps> = ({ content }) => {
           properties: {},
           children: [
             new Paragraph({
-              text: "ĐỀ THI TOÁN - TẠO BỞI MATHGEN VN",
+              text: "ĐỀ THI - TẠO BỞI TRỢ LÝ EDUGENVN",
               heading: HeadingLevel.HEADING_1,
               alignment: AlignmentType.CENTER,
               spacing: { after: 400 }
@@ -115,7 +115,7 @@ export const ExamDisplay: React.FC<ExamDisplayProps> = ({ content }) => {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `De_Thi_MathGen_${new Date().toISOString().slice(0,10)}.docx`;
+      a.download = `De_Thi_EduGenVN_${new Date().toISOString().slice(0,10)}.docx`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);

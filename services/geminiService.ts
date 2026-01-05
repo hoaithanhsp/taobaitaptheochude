@@ -18,6 +18,13 @@ export const generateExamStream = async (
     throw new Error("Vui lòng nhập API Key để sử dụng.");
   }
 
+  // KIỂM TRA QUAN TRỌNG: API Key không được chứa ký tự Unicode (Tiếng Việt)
+  // Lỗi "non ISO-8859-1 code point" xảy ra do key chứa ký tự lạ.
+  // eslint-disable-next-line no-control-regex
+  if (/[^\x00-\x7F]/.test(apiKey)) {
+    throw new Error("API Key không hợp lệ (chứa ký tự tiếng Việt hoặc ký tự lạ). Vui lòng xóa và nhập lại API Key chuẩn.");
+  }
+
   const isLiterature = request.subject === 'Ngữ văn / Tiếng Việt';
   const isEssay = request.type === QuestionType.Essay;
 

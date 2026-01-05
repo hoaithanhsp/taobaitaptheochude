@@ -19,8 +19,11 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onSave, onClos
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (inputKey.trim()) {
-      onSave(inputKey.trim());
+    // Tự động làm sạch key: Xóa khoảng trắng và các ký tự không phải ASCII (tiếng Việt, emoji...)
+    const cleanKey = inputKey.replace(/[^\x00-\x7F]/g, "").trim();
+    
+    if (cleanKey) {
+      onSave(cleanKey);
     }
   };
 
@@ -57,7 +60,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onSave, onClos
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">
-                Dán API Key vào đây
+                Dán API Key vào đây (Tắt bộ gõ Tiếng Việt nếu nhập lỗi)
               </label>
               <input
                 type="password"
