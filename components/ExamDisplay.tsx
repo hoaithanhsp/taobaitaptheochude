@@ -12,18 +12,40 @@ export const ExamDisplay: React.FC<ExamDisplayProps> = ({ content }) => {
 
   // Parse the content into two parts based on the headers defined in SYSTEM_INSTRUCTION
   const { questionsPart, answersPart } = useMemo(() => {
-    const part2Marker = "### PHẦN 2: ĐÁP ÁN VÀ LỜI GIẢI";
+    // Danh sách các marker có thể xuất hiện (ưu tiên chính xác nhất)
+    const markers = [
+      "### PHẦN 2: ĐÁP ÁN VÀ LỜI GIẢI CHI TIẾT",
+      "### PHẦN 2: ĐÁP ÁN VÀ HƯỚNG DẪN CHI TIẾT",
+      "### PHẦN 2: ĐÁP ÁN",
+      "PHẦN 2: ĐÁP ÁN VÀ LỜI GIẢI CHI TIẾT", // Trường hợp mất dấu ###
+      "PHẦN 2: ĐÁP ÁN" // Fallback cuối cùng
+    ];
+
+    let splitIndex = -1;
+    let matchedMarker = "";
+
+    // Tìm marker xuất hiện đầu tiên trong văn bản
+    for (const marker of markers) {
+      const idx = content.indexOf(marker);
+      if (idx !== -1) {
+        splitIndex = idx;
+        matchedMarker = marker;
+        break;
+      }
+    }
     
-    // Check if the content contains the split marker
-    if (content.includes(part2Marker)) {
-      const [part1, part2] = content.split(part2Marker);
+    // Nếu tìm thấy điểm cắt
+    if (splitIndex !== -1) {
+      const part1 = content.substring(0, splitIndex);
+      const part2 = content.substring(splitIndex); // Giữ lại cả marker ở phần 2
+      
       return {
         questionsPart: part1.trim(),
-        answersPart: `${part2Marker}\n${part2}`.trim() // Keep the header for Part 2
+        answersPart: part2.trim()
       };
     }
     
-    // If Part 2 hasn't started generating yet, everything is Part 1
+    // Nếu chưa tạo đến phần 2, toàn bộ là phần 1
     return {
       questionsPart: content.trim(),
       answersPart: ''

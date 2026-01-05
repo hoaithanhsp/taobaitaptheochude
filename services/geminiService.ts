@@ -34,9 +34,9 @@ export const generateExamStream = async (
     extraPrompt = `
     LƯU Ý ĐẶC BIỆT: Đây là yêu cầu tạo đề Văn / Bài tự luận.
     1. Số lượng câu hỏi: Chỉ tạo 01 câu duy nhất.
-    2. Yêu cầu đáp án: BẮT BUỘC PHẢI BAO GỒM 2 PHẦN:
-       - Phần 1: Dàn ý chi tiết.
-       - Phần 2: Bài văn hoàn chỉnh (Độ dài khoảng ${request.literaturePageCount || 2} trang).
+    2. Yêu cầu đáp án (Trong PHẦN 2): BẮT BUỘC PHẢI BAO GỒM 2 MỤC:
+       - A. Dàn ý chi tiết.
+       - B. Bài văn hoàn chỉnh (Độ dài khoảng ${request.literaturePageCount || 2} trang).
     `;
   }
 

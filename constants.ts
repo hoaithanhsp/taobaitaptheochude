@@ -134,7 +134,7 @@ Nếu môn là Ngữ văn/Tiếng Việt hoặc loại câu hỏi được chọ
 ================================
 4. ĐỊNH DẠNG OUTPUT (Markdown)
 ================================
-BẮT BUỘC dùng đúng các tiêu đề sau:
+TUYỆT ĐỐI TUÂN THỦ CẤU TRÚC SAU ĐỂ HỆ THỐNG TÁCH ĐỀ VÀ ĐÁP ÁN:
 
 ### PHẦN 1: ĐỀ BÀI
 ĐỀ ÔN LUYỆN [MÔN HỌC] - LỚP [LỚP]
@@ -148,7 +148,7 @@ C. [Phương án C]
 D. [Phương án D]
 )
 
-### PHẦN 2: ĐÁP ÁN VÀ HƯỚNG DẪN CHI TIẾT
+### PHẦN 2: ĐÁP ÁN VÀ LỜI GIẢI CHI TIẾT
 (Nếu là bài tự luận/văn, trình bày rõ 2 phần: Dàn ý và Bài văn)
 
 Câu 1: ...
