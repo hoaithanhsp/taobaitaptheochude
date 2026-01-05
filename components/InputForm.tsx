@@ -38,10 +38,10 @@ export const InputForm: React.FC<InputFormProps> = ({
   const isEssayType = request.type === QuestionType.Essay;
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6">
-      <div className="border-b border-slate-100 pb-4 mb-4">
-        <h2 className="text-xl font-semibold text-slate-800 flex items-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+    <div className="bg-white rounded-xl shadow-md border border-teal-100 p-6 space-y-6">
+      <div className="border-b border-teal-50 pb-4 mb-4">
+        <h2 className="text-xl font-bold text-teal-800 flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-teal-600"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
           Cấu hình đề thi
         </h2>
         <p className="text-sm text-slate-500 mt-1">Hỗ trợ tất cả các môn từ Lớp 1 đến Lớp 12 (Chương trình 2018)</p>
@@ -49,7 +49,7 @@ export const InputForm: React.FC<InputFormProps> = ({
 
       {/* Model Selection */}
       <div className="space-y-3">
-        <label className="block text-sm font-medium text-slate-700">Chọn Mô hình AI (Model)</label>
+        <label className="block text-sm font-bold text-teal-900">Chọn Mô hình AI (Model)</label>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {MODELS.map((model) => (
             <div
@@ -57,16 +57,16 @@ export const InputForm: React.FC<InputFormProps> = ({
               onClick={() => onChange('model', model.id)}
               className={`cursor-pointer rounded-lg border p-3 transition-all relative ${
                 request.model === model.id
-                  ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500'
-                  : 'border-slate-200 hover:border-blue-300 hover:bg-slate-50'
+                  ? 'border-teal-500 bg-teal-50 ring-2 ring-teal-500 shadow-md'
+                  : 'border-slate-200 hover:border-teal-300 hover:bg-teal-50/50 hover:shadow-sm'
               }`}
             >
               {model.badge && (
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
+                <span className="absolute -top-2 -right-2 bg-rose-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
                   {model.badge}
                 </span>
               )}
-              <div className="font-semibold text-sm text-slate-800">{model.name}</div>
+              <div className={`font-semibold text-sm ${request.model === model.id ? 'text-teal-900' : 'text-slate-800'}`}>{model.name}</div>
               <div className="text-xs text-slate-500 mt-1">{model.desc}</div>
             </div>
           ))}
@@ -77,12 +77,12 @@ export const InputForm: React.FC<InputFormProps> = ({
         
         {/* Subject */}
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-slate-700">Môn học</label>
+          <label className="block text-sm font-semibold text-teal-900">Môn học</label>
           <div className="relative">
             <select
               value={request.subject}
               onChange={(e) => onChange('subject', e.target.value)}
-              className="block w-full rounded-lg border-slate-300 bg-slate-50 py-3 px-4 text-slate-900 focus:border-blue-500 focus:ring-blue-500 sm:text-sm border transition-shadow shadow-sm appearance-none"
+              className="block w-full rounded-lg border-slate-300 bg-slate-50 py-3 px-4 text-slate-900 focus:border-teal-500 focus:ring-teal-500 sm:text-sm border transition-shadow shadow-sm appearance-none hover:border-teal-300"
             >
               {SUBJECTS.map((s) => (
                 <option key={s} value={s}>{s}</option>
@@ -96,12 +96,12 @@ export const InputForm: React.FC<InputFormProps> = ({
 
         {/* Grade */}
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-slate-700">Khối Lớp</label>
+          <label className="block text-sm font-semibold text-teal-900">Khối Lớp</label>
           <div className="relative">
             <select
               value={request.grade}
               onChange={(e) => onChange('grade', e.target.value)}
-              className="block w-full rounded-lg border-slate-300 bg-slate-50 py-3 px-4 text-slate-900 focus:border-blue-500 focus:ring-blue-500 sm:text-sm border transition-shadow shadow-sm appearance-none"
+              className="block w-full rounded-lg border-slate-300 bg-slate-50 py-3 px-4 text-slate-900 focus:border-teal-500 focus:ring-teal-500 sm:text-sm border transition-shadow shadow-sm appearance-none hover:border-teal-300"
             >
               {GRADES.map((g) => (
                 <option key={g.value} value={g.value}>{g.label}</option>
@@ -115,19 +115,19 @@ export const InputForm: React.FC<InputFormProps> = ({
 
         {/* Topic */}
         <div className="space-y-2 md:col-span-2">
-          <label className="block text-sm font-medium text-slate-700">Chủ đề (Nội dung kiến thức)</label>
+          <label className="block text-sm font-semibold text-teal-900">Chủ đề (Nội dung kiến thức)</label>
           <input
             type="text"
             value={request.topic}
             onChange={(e) => onChange('topic', e.target.value)}
             placeholder="Ví dụ: Phép cộng trong phạm vi 100, Câu đơn, Thì hiện tại đơn, Tình yêu quê hương..."
-            className="block w-full rounded-lg border-slate-300 bg-slate-50 py-3 px-4 text-slate-900 focus:border-blue-500 focus:ring-blue-500 sm:text-sm border transition-shadow shadow-sm"
+            className="block w-full rounded-lg border-slate-300 bg-slate-50 py-3 px-4 text-slate-900 focus:border-teal-500 focus:ring-teal-500 sm:text-sm border transition-shadow shadow-sm hover:border-teal-300"
           />
         </div>
 
         {/* Specific Requirements */}
         <div className="space-y-2 md:col-span-2">
-          <label className="block text-sm font-medium text-slate-700">
+          <label className="block text-sm font-semibold text-teal-900">
             Dạng bài tập / Yêu cầu cụ thể (Tùy chọn)
           </label>
           <textarea
@@ -135,18 +135,18 @@ export const InputForm: React.FC<InputFormProps> = ({
             onChange={(e) => onChange('specificRequirements', e.target.value)}
             placeholder="Ví dụ: Tập trung vào phân tích nhân vật... (Để trống nếu muốn bao quát cả chủ đề)"
             rows={2}
-            className="block w-full rounded-lg border-slate-300 bg-slate-50 py-3 px-4 text-slate-900 focus:border-blue-500 focus:ring-blue-500 sm:text-sm border transition-shadow shadow-sm resize-none"
+            className="block w-full rounded-lg border-slate-300 bg-slate-50 py-3 px-4 text-slate-900 focus:border-teal-500 focus:ring-teal-500 sm:text-sm border transition-shadow shadow-sm resize-none hover:border-teal-300"
           />
         </div>
 
         {/* Question Type */}
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-slate-700">Loại câu hỏi</label>
+          <label className="block text-sm font-semibold text-teal-900">Loại câu hỏi</label>
           <div className="relative">
             <select
               value={request.type}
               onChange={(e) => onChange('type', e.target.value)}
-              className="block w-full rounded-lg border-slate-300 bg-slate-50 py-3 px-4 text-slate-900 focus:border-blue-500 focus:ring-blue-500 sm:text-sm border transition-shadow shadow-sm appearance-none"
+              className="block w-full rounded-lg border-slate-300 bg-slate-50 py-3 px-4 text-slate-900 focus:border-teal-500 focus:ring-teal-500 sm:text-sm border transition-shadow shadow-sm appearance-none hover:border-teal-300"
             >
               {QUESTION_TYPES.map((t) => (
                 <option key={t.value} value={t.value}>{t.label}</option>
@@ -162,12 +162,12 @@ export const InputForm: React.FC<InputFormProps> = ({
         {isLiterature || isEssayType ? (
           <>
              <div className="space-y-2">
-               <label className="block text-sm font-medium text-slate-700">Độ dài bài văn mẫu (Dự kiến)</label>
+               <label className="block text-sm font-semibold text-teal-900">Độ dài bài văn mẫu (Dự kiến)</label>
                <div className="relative">
                  <select
                    value={request.literaturePageCount || 2}
                    onChange={(e) => onChange('literaturePageCount', parseInt(e.target.value))}
-                   className="block w-full rounded-lg border-slate-300 bg-slate-50 py-3 px-4 text-slate-900 focus:border-blue-500 focus:ring-blue-500 sm:text-sm border transition-shadow shadow-sm appearance-none"
+                   className="block w-full rounded-lg border-slate-300 bg-slate-50 py-3 px-4 text-slate-900 focus:border-teal-500 focus:ring-teal-500 sm:text-sm border transition-shadow shadow-sm appearance-none hover:border-teal-300"
                  >
                    {LIT_PAGE_COUNTS.map((c) => (
                      <option key={c} value={c}>{c} trang (Khoảng {c * 400}-{c * 500} từ)</option>
@@ -182,12 +182,12 @@ export const InputForm: React.FC<InputFormProps> = ({
         ) : (
           <>
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-slate-700">Mức độ</label>
+              <label className="block text-sm font-semibold text-teal-900">Mức độ</label>
               <div className="relative">
                 <select
                   value={request.difficulty}
                   onChange={(e) => onChange('difficulty', e.target.value)}
-                  className="block w-full rounded-lg border-slate-300 bg-slate-50 py-3 px-4 text-slate-900 focus:border-blue-500 focus:ring-blue-500 sm:text-sm border transition-shadow shadow-sm appearance-none"
+                  className="block w-full rounded-lg border-slate-300 bg-slate-50 py-3 px-4 text-slate-900 focus:border-teal-500 focus:ring-teal-500 sm:text-sm border transition-shadow shadow-sm appearance-none hover:border-teal-300"
                 >
                   {DIFFICULTIES.map((d) => (
                     <option key={d.value} value={d.value}>{d.label}</option>
@@ -200,12 +200,12 @@ export const InputForm: React.FC<InputFormProps> = ({
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-slate-700">Số lượng câu hỏi</label>
+              <label className="block text-sm font-semibold text-teal-900">Số lượng câu hỏi</label>
                <div className="relative">
                 <select
                   value={request.questionCount}
                   onChange={(e) => onChange('questionCount', parseInt(e.target.value))}
-                  className="block w-full rounded-lg border-slate-300 bg-slate-50 py-3 px-4 text-slate-900 focus:border-blue-500 focus:ring-blue-500 sm:text-sm border transition-shadow shadow-sm appearance-none"
+                  className="block w-full rounded-lg border-slate-300 bg-slate-50 py-3 px-4 text-slate-900 focus:border-teal-500 focus:ring-teal-500 sm:text-sm border transition-shadow shadow-sm appearance-none hover:border-teal-300"
                 >
                   {QUESTION_COUNTS.map((count) => (
                     <option key={count} value={count}>{count} câu</option>
@@ -224,10 +224,10 @@ export const InputForm: React.FC<InputFormProps> = ({
         <button
           onClick={onSubmit}
           disabled={isGenerating || !request.topic.trim()}
-          className={`w-full flex items-center justify-center py-4 px-6 rounded-lg text-white font-semibold text-lg transition-all duration-200 shadow-md hover:shadow-lg ${
+          className={`w-full flex items-center justify-center py-4 px-6 rounded-lg text-white font-bold text-lg transition-all duration-200 shadow-lg ${
             isGenerating || !request.topic.trim()
-              ? 'bg-slate-400 cursor-not-allowed'
-              : 'bg-blue-600 hover:bg-blue-700 active:transform active:scale-[0.99]'
+              ? 'bg-slate-400 cursor-not-allowed shadow-none'
+              : 'bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 shadow-teal-500/30 transform hover:-translate-y-0.5'
           }`}
         >
           {isGenerating ? (

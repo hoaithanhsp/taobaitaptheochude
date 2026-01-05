@@ -27,7 +27,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onSave, onClos
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-100">
-        <div className="bg-blue-600 px-6 py-4 flex items-center justify-between">
+        <div className="bg-gradient-to-r from-teal-600 to-emerald-600 px-6 py-4 flex items-center justify-between">
           <h3 className="text-lg font-bold text-white flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
             Cấu hình API Key
@@ -44,13 +44,13 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onSave, onClos
             Ứng dụng sử dụng <strong>Google Gemini API</strong>. Để bắt đầu, bạn cần nhập API Key của riêng mình. Key được lưu an toàn trên trình duyệt của bạn.
           </p>
 
-          <div className="mb-4 bg-blue-50 border border-blue-100 rounded-lg p-3 text-sm text-blue-800">
+          <div className="mb-4 bg-teal-50 border border-teal-100 rounded-lg p-3 text-sm text-teal-800">
             <p className="font-semibold mb-1">Chưa có API Key?</p>
              <p className="mb-2">
-              1. Truy cập <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="underline font-bold hover:text-blue-600">Google AI Studio</a> để lấy key miễn phí.
+              1. Truy cập <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="underline font-bold hover:text-teal-600">Google AI Studio</a> để lấy key miễn phí.
             </p>
              <p>
-              2. Hoặc xem <a href="https://drive.google.com/drive/folders/1G6eiVeeeEvsYgNk2Om7FEybWf30EP1HN?usp=drive_link" target="_blank" rel="noreferrer" className="underline font-bold text-red-600 hover:text-red-700">HƯỚNG DẪN CHI TIẾT TẠI ĐÂY</a>.
+              2. Hoặc xem <a href="https://drive.google.com/drive/folders/1G6eiVeeeEvsYgNk2Om7FEybWf30EP1HN?usp=drive_link" target="_blank" rel="noreferrer" className="underline font-bold text-rose-600 hover:text-rose-700">HƯỚNG DẪN CHI TIẾT TẠI ĐÂY</a>.
             </p>
           </div>
 
@@ -64,7 +64,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onSave, onClos
                 value={inputKey}
                 onChange={(e) => setInputKey(e.target.value)}
                 placeholder="AIzaSy..."
-                className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+                className="w-full px-4 py-3 rounded-lg border border-slate-300 focus:ring-2 focus:ring-teal-500 focus:border-teal-500 outline-none transition-all"
                 autoFocus
               />
             </div>
@@ -72,7 +72,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onSave, onClos
             <button
               type="submit"
               disabled={!inputKey.trim()}
-              className="w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-400 disabled:cursor-not-allowed text-white font-bold rounded-lg shadow-md transition-all transform active:scale-[0.98]"
+              className="w-full py-3 px-4 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 disabled:bg-slate-400 disabled:from-slate-400 disabled:to-slate-400 disabled:cursor-not-allowed text-white font-bold rounded-lg shadow-md transition-all transform active:scale-[0.98]"
             >
               Lưu & Bắt Đầu
             </button>

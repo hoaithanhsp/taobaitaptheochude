@@ -129,16 +129,16 @@ export const ExamDisplay: React.FC<ExamDisplayProps> = ({ content }) => {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-[700px] lg:h-[900px]">
-      <div className="bg-slate-50 border-b border-slate-200 px-6 py-3 flex items-center justify-between sticky top-0 z-10">
-        <h3 className="font-semibold text-slate-700 flex items-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+    <div className="bg-white rounded-xl shadow-md border border-teal-100 overflow-hidden flex flex-col h-[700px] lg:h-[900px]">
+      <div className="bg-teal-50 border-b border-teal-100 px-6 py-3 flex items-center justify-between sticky top-0 z-10">
+        <h3 className="font-bold text-teal-800 flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-teal-600"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
           Nội Dung Đề Thi
         </h3>
         <button
           onClick={handleDownloadWord}
           disabled={isDownloading}
-          className="text-sm bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition-colors shadow-sm font-medium flex items-center gap-2 disabled:opacity-50"
+          className="text-sm bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-md transition-colors shadow-sm font-bold flex items-center gap-2 disabled:opacity-50"
         >
           {isDownloading ? (
             <>
@@ -160,10 +160,10 @@ export const ExamDisplay: React.FC<ExamDisplayProps> = ({ content }) => {
       <div className="flex-grow flex flex-col lg:flex-row overflow-hidden bg-white">
         {/* Column 1: Questions */}
         <div className="flex-1 overflow-y-auto custom-scrollbar border-b lg:border-b-0 lg:border-r border-slate-200 p-6 min-h-[50%] lg:min-h-full">
-           <div className="sticky top-0 bg-white/95 backdrop-blur z-10 pb-2 mb-4 border-b border-slate-100">
-             <span className="text-xs font-bold text-blue-600 uppercase tracking-wider">Đề Bài</span>
+           <div className="sticky top-0 bg-white/95 backdrop-blur z-10 pb-2 mb-4 border-b border-teal-100">
+             <span className="text-xs font-bold text-teal-600 uppercase tracking-wider">Đề Bài</span>
            </div>
-           <div className="prose prose-slate max-w-none prose-headings:font-bold prose-headings:text-slate-800 prose-p:text-slate-700 prose-strong:text-slate-900 prose-li:text-slate-700 prose-sm">
+           <div className="prose prose-slate max-w-none prose-headings:font-bold prose-headings:text-teal-900 prose-p:text-slate-700 prose-strong:text-slate-900 prose-li:text-slate-700 prose-sm">
              <ReactMarkdown remarkPlugins={[remarkGfm]}>
               {questionsPart}
             </ReactMarkdown>
@@ -171,17 +171,17 @@ export const ExamDisplay: React.FC<ExamDisplayProps> = ({ content }) => {
         </div>
 
         {/* Column 2: Answers */}
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-6 bg-slate-50/50 min-h-[50%] lg:min-h-full">
-           <div className="sticky top-0 bg-slate-50/95 backdrop-blur z-10 pb-2 mb-4 border-b border-slate-100">
-             <span className="text-xs font-bold text-green-600 uppercase tracking-wider">Đáp Án & Lời Giải</span>
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-6 bg-teal-50/30 min-h-[50%] lg:min-h-full">
+           <div className="sticky top-0 bg-white/95 backdrop-blur z-10 pb-2 mb-4 border-b border-teal-100">
+             <span className="text-xs font-bold text-emerald-600 uppercase tracking-wider">Đáp Án & Lời Giải</span>
            </div>
-           <div className="prose prose-slate max-w-none prose-headings:font-bold prose-headings:text-slate-800 prose-p:text-slate-700 prose-strong:text-slate-900 prose-li:text-slate-700 prose-sm">
+           <div className="prose prose-slate max-w-none prose-headings:font-bold prose-headings:text-teal-900 prose-p:text-slate-700 prose-strong:text-slate-900 prose-li:text-slate-700 prose-sm">
             {answersPart ? (
               <ReactMarkdown remarkPlugins={[remarkGfm]}>
                 {answersPart}
               </ReactMarkdown>
             ) : (
-               <div className="flex items-center justify-center h-40 text-slate-400 italic text-sm">
+               <div className="flex items-center justify-center h-40 text-teal-400 italic text-sm">
                  Đáp án sẽ hiển thị tại đây sau khi đề bài được tạo xong...
                </div>
             )}

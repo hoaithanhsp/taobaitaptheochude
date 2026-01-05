@@ -91,25 +91,25 @@ const App: React.FC = () => {
       />
 
       {/* Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
+      <header className="bg-white border-b border-teal-100 sticky top-0 z-50 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="bg-blue-600 p-2 rounded-lg">
+            <div className="bg-gradient-to-tr from-teal-600 to-emerald-500 p-2 rounded-lg shadow-md shadow-teal-500/20">
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
             </div>
             <div>
-              <h1 className="text-lg md:text-xl font-bold text-slate-900 tracking-tight line-clamp-1">EDUGEN VN BY TRẦN HOÀI THANH</h1>
+              <h1 className="text-lg md:text-xl font-bold text-teal-900 tracking-tight line-clamp-1">EDUGEN VN BY TRẦN HOÀI THANH</h1>
             </div>
           </div>
           
           <div className="flex items-center gap-3">
              <button 
                onClick={() => setIsApiKeyModalOpen(true)}
-               className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-slate-200 hover:bg-slate-50 text-xs font-medium transition-colors"
+               className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-teal-200 hover:bg-teal-50 text-xs font-medium transition-colors text-teal-700"
              >
-               <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+               <span className={`w-2 h-2 rounded-full animate-pulse ${apiKey ? 'bg-emerald-500' : 'bg-red-500'}`}></span>
                {apiKey ? 'Đã có API Key' : <span className="text-red-500 font-bold">Nhập API Key</span>}
-               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-teal-400"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
              </button>
           </div>
         </div>
@@ -129,14 +129,14 @@ const App: React.FC = () => {
             />
 
             {/* Helper Info Card */}
-            <div className="bg-blue-50 border border-blue-100 rounded-xl p-5">
-              <h4 className="text-blue-800 font-semibold mb-2 flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+            <div className="bg-teal-50 border border-teal-200 rounded-xl p-5 shadow-sm">
+              <h4 className="text-teal-900 font-bold mb-2 flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-teal-600"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                 Hệ thống tự động
               </h4>
-              <ul className="text-sm text-blue-700 space-y-1.5 list-disc list-inside">
-                <li>Nếu Model bạn chọn bị quá tải, hệ thống sẽ <strong>tự động chuyển</strong> sang Model khác để đảm bảo bạn luôn nhận được kết quả.</li>
-                <li>Key của bạn được lưu trên trình duyệt này.</li>
+              <ul className="text-sm text-teal-800 space-y-2 list-disc list-inside font-medium">
+                <li>Nếu Model bạn chọn bị quá tải, hệ thống sẽ <strong className="text-teal-900">tự động chuyển</strong> sang Model khác để đảm bảo bạn luôn nhận được kết quả.</li>
+                <li>Key của bạn được lưu an toàn trên trình duyệt này.</li>
               </ul>
             </div>
           </div>
@@ -156,10 +156,10 @@ const App: React.FC = () => {
             {generatedContent || isGenerating ? (
               <ExamDisplay content={generatedContent} />
             ) : (
-              <div className="h-[400px] flex flex-col items-center justify-center text-slate-400 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50">
-                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="mb-4 opacity-50"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
-                <p className="font-medium">Chưa có nội dung</p>
-                <p className="text-sm">Hãy cấu hình và nhấn "Tạo Đề Thi Ngay"</p>
+              <div className="h-[400px] flex flex-col items-center justify-center text-slate-400 border-2 border-dashed border-teal-200 rounded-xl bg-white/50">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="mb-4 opacity-50 text-teal-400"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+                <p className="font-medium text-teal-900">Chưa có nội dung</p>
+                <p className="text-sm text-teal-600">Hãy cấu hình và nhấn "Tạo Đề Thi Ngay"</p>
               </div>
             )}
           </div>
@@ -167,10 +167,10 @@ const App: React.FC = () => {
       </main>
 
       {/* Footer Promotion */}
-      <footer className="bg-slate-800 text-slate-300 py-8 px-4 mt-auto border-t border-slate-700 no-print">
+      <footer className="bg-slate-900 text-slate-300 py-8 px-4 mt-auto border-t-4 border-teal-600 no-print">
         <div className="max-w-5xl mx-auto text-center">
-          <div className="mb-6 p-6 bg-gradient-to-r from-blue-900/40 to-indigo-900/40 rounded-2xl border border-blue-500/20 backdrop-blur-sm">
-            <p className="font-bold text-lg md:text-xl text-blue-200 mb-3 leading-relaxed">
+          <div className="mb-6 p-6 bg-gradient-to-r from-teal-900/40 to-emerald-900/40 rounded-2xl border border-teal-500/30 backdrop-blur-sm shadow-xl">
+            <p className="font-bold text-lg md:text-xl text-teal-100 mb-3 leading-relaxed">
               ĐĂNG KÝ KHOÁ HỌC THỰC CHIẾN VIẾT SKKN, TẠO APP DẠY HỌC, TẠO MÔ PHỎNG TRỰC QUAN <br className="hidden md:block" />
               <span className="text-yellow-400">CHỈ VỚI 1 CÂU LỆNH</span>
             </p>
@@ -178,7 +178,7 @@ const App: React.FC = () => {
               href="https://forms.gle/d7AmcT9MTyGy7bJd8" 
               target="_blank" 
               rel="noreferrer"
-              className="inline-flex items-center gap-2 px-8 py-3 bg-blue-600 hover:bg-blue-500 text-white font-bold rounded-full transition-all transform hover:-translate-y-1 shadow-lg shadow-blue-900/50"
+              className="inline-flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-white font-bold rounded-full transition-all transform hover:-translate-y-1 shadow-lg shadow-teal-500/40 border border-teal-400/50"
             >
               ĐĂNG KÝ NGAY
             </a>
@@ -191,7 +191,7 @@ const App: React.FC = () => {
                 href="https://www.facebook.com/tranhoaithanhvicko/" 
                 target="_blank" 
                 rel="noreferrer"
-                className="hover:text-blue-400 transition-colors duration-200 flex items-center gap-2"
+                className="hover:text-teal-400 transition-colors duration-200 flex items-center gap-2"
               >
                 <span className="font-bold">Facebook:</span> tranhoaithanhvicko
               </a>
