@@ -171,15 +171,32 @@ export const ExamDisplay: React.FC<ExamDisplayProps> = ({ content }) => {
             continue;
           }
 
-          // Kiểm tra nếu là câu hỏi (Câu X:, Câu X., Câu X) - thêm khoảng cách trước và in đậm toàn bộ dòng câu hỏi
-          if (cleanLine.match(/^(\*\*)?(Câu|Bài)\s*\d+/i)) {
-            elements.push(new Paragraph({
-              children: [new TextRun({
-                text: processText(cleanLine),
+          // Kiểm tra nếu là câu hỏi (Câu X:, Câu X., Câu X) - chỉ in đậm phần tiêu đề, không in đậm nội dung
+          const questionMatch = cleanLine.match(/^(\*\*)?(Câu|Bài)\s*\d+[^:]*:/i);
+          if (questionMatch) {
+            const titleEnd = cleanLine.indexOf(':', questionMatch[0].length - 1) + 1;
+            const title = cleanLine.substring(0, titleEnd).replace(/\*\*/g, '');
+            const content = cleanLine.substring(titleEnd).trim();
+
+            const children: TextRun[] = [
+              new TextRun({
+                text: title + " ",
                 bold: true,
                 size: 24,
                 font: "Times New Roman"
-              })],
+              })
+            ];
+
+            if (content) {
+              children.push(new TextRun({
+                text: content,
+                size: 24,
+                font: "Times New Roman"
+              }));
+            }
+
+            elements.push(new Paragraph({
+              children,
               spacing: { before: 300, after: 120 }
             }));
             continue;
