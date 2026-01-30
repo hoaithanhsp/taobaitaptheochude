@@ -33,18 +33,18 @@ export const ExamDisplay: React.FC<ExamDisplayProps> = ({ content }) => {
         break;
       }
     }
-    
+
     // Nếu tìm thấy điểm cắt
     if (splitIndex !== -1) {
       const part1 = content.substring(0, splitIndex);
       const part2 = content.substring(splitIndex); // Giữ lại cả marker ở phần 2
-      
+
       return {
         questionsPart: part1.trim(),
         answersPart: part2.trim()
       };
     }
-    
+
     // Nếu chưa tạo đến phần 2, toàn bộ là phần 1
     return {
       questionsPart: content.trim(),
@@ -57,78 +57,191 @@ export const ExamDisplay: React.FC<ExamDisplayProps> = ({ content }) => {
   const handleDownloadWord = async () => {
     setIsDownloading(true);
     try {
-      const createParagraphsFromMarkdown = (text: string) => {
-        return text.split('\n').map(line => {
+      // Hàm xử lý text - giữ nguyên LaTeX, chỉ loại bỏ markdown bold markers
+      const processText = (text: string): string => {
+        // Giữ nguyên định dạng LaTeX (bao gồm $...$, $$...$$, \frac, \sqrt, v.v.)
+        // Chỉ loại bỏ markdown bold markers **text**
+        return text.replace(/\*\*/g, '');
+      };
+
+      const createParagraphsFromMarkdown = (text: string): Paragraph[] => {
+        const paragraphs: Paragraph[] = [];
+        const lines = text.split('\n');
+
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i];
           const cleanLine = line.trim();
-          if (!cleanLine) return new Paragraph({ text: "" });
+
+          if (!cleanLine) {
+            paragraphs.push(new Paragraph({ children: [new TextRun({ text: "", font: "Times New Roman" })] }));
+            continue;
+          }
+
+          // Xử lý LaTeX trong dòng
+          const processedLine = processText(cleanLine);
 
           // Headers
           if (cleanLine.startsWith('### ')) {
-            return new Paragraph({
-              text: cleanLine.replace('### ', ''),
+            paragraphs.push(new Paragraph({
+              children: [new TextRun({
+                text: processText(cleanLine.replace('### ', '')),
+                bold: true,
+                size: 26,
+                font: "Times New Roman"
+              })],
               heading: HeadingLevel.HEADING_3,
-              spacing: { before: 240, after: 120 }
-            });
+              spacing: { before: 300, after: 150 }
+            }));
+            continue;
           }
           if (cleanLine.startsWith('## ')) {
-             return new Paragraph({
-              text: cleanLine.replace('## ', ''),
+            paragraphs.push(new Paragraph({
+              children: [new TextRun({
+                text: processText(cleanLine.replace('## ', '')),
+                bold: true,
+                size: 28,
+                font: "Times New Roman"
+              })],
               heading: HeadingLevel.HEADING_2,
-              spacing: { before: 240, after: 120 }
-            });
+              spacing: { before: 300, after: 150 }
+            }));
+            continue;
           }
 
-          // Bold detection for "Câu X:"
-          // Simple heuristic: if line starts with "**Câu" or "Câu" followed by number
-          const children: TextRun[] = [];
-          
-          // Regex to identify "Câu X:" pattern or similar bold markers
-          // This is a basic parser. For full markdown support in docx, a heavier library is needed.
-          // Here we just ensure Question titles are bold.
-          if (cleanLine.match(/^(Câu \d+:|Bài \d+:)/) || cleanLine.startsWith('**Câu')) {
-             children.push(new TextRun({ 
-               text: cleanLine.replace(/\*\*/g, ''), 
-               bold: true,
-               size: 24, // 12pt
-               font: "Times New Roman"
-             }));
-          } else {
-             // Normal text
-             children.push(new TextRun({ 
-               text: cleanLine.replace(/\*\*/g, ''), // Strip bold markers for cleanliness
-               size: 24,
-               font: "Times New Roman"
-             }));
+          // Kiểm tra nếu là câu hỏi (Câu X:) - thêm khoảng cách trước và in đậm
+          if (cleanLine.match(/^(\*\*)?(Câu|Bài)\s*\d+[:.]/i)) {
+            paragraphs.push(new Paragraph({
+              children: [new TextRun({
+                text: processText(cleanLine.replace(/\*\*/g, '')),
+                bold: true,
+                size: 24,
+                font: "Times New Roman"
+              })],
+              spacing: { before: 300, after: 120 }
+            }));
+            continue;
           }
 
-          return new Paragraph({
-            children: children,
-            spacing: { after: 120 }
-          });
-        });
+          // Kiểm tra nếu là đáp án A., B., C., D. - in đậm ký tự đầu
+          const answerMatch = processedLine.match(/^([A-D])\.\s*(.*)$/);
+          if (answerMatch) {
+            paragraphs.push(new Paragraph({
+              children: [
+                new TextRun({
+                  text: answerMatch[1] + ". ",
+                  bold: true,
+                  size: 24,
+                  font: "Times New Roman"
+                }),
+                new TextRun({
+                  text: answerMatch[2],
+                  size: 24,
+                  font: "Times New Roman"
+                })
+              ],
+              spacing: { after: 80 }
+            }));
+            continue;
+          }
+
+          // Normal text - xử lý markdown bold (**text**)
+          const boldPattern = /\*\*([^*]+)\*\*/g;
+          const parts: TextRun[] = [];
+          let lastIndex = 0;
+          let match;
+
+          while ((match = boldPattern.exec(processedLine)) !== null) {
+            // Text trước phần bold
+            if (match.index > lastIndex) {
+              parts.push(new TextRun({
+                text: processedLine.slice(lastIndex, match.index),
+                size: 24,
+                font: "Times New Roman"
+              }));
+            }
+            // Phần bold
+            parts.push(new TextRun({
+              text: match[1],
+              bold: true,
+              size: 24,
+              font: "Times New Roman"
+            }));
+            lastIndex = match.index + match[0].length;
+          }
+
+          // Text còn lại sau phần bold cuối cùng
+          if (lastIndex < processedLine.length) {
+            parts.push(new TextRun({
+              text: processedLine.slice(lastIndex).replace(/\*\*/g, ''),
+              size: 24,
+              font: "Times New Roman"
+            }));
+          }
+
+          // Nếu không có phần bold nào
+          if (parts.length === 0) {
+            parts.push(new TextRun({
+              text: processedLine.replace(/\*\*/g, ''),
+              size: 24,
+              font: "Times New Roman"
+            }));
+          }
+
+          paragraphs.push(new Paragraph({
+            children: parts,
+            spacing: { after: 100 }
+          }));
+        }
+
+        return paragraphs;
       };
+
+      // Tạo dòng credit EDUGENVN
+      const creditParagraph = new Paragraph({
+        children: [new TextRun({
+          text: "Bài tập được tạo thành công từ EDUGENVN - Phát triển bởi thầy Trần Hoài Thanh",
+          italics: true,
+          size: 22,
+          font: "Times New Roman",
+          color: "666666"
+        })],
+        alignment: AlignmentType.CENTER,
+        spacing: { before: 400, after: 200 }
+      });
 
       const doc = new Document({
         sections: [{
           properties: {},
           children: [
             new Paragraph({
-              text: "ĐỀ THI - TẠO BỞI TRỢ LÝ EDUGENVN",
+              children: [new TextRun({
+                text: "ĐỀ THI - TẠO BỞI TRỢ LÝ EDUGENVN",
+                bold: true,
+                size: 32,
+                font: "Times New Roman"
+              })],
               heading: HeadingLevel.HEADING_1,
               alignment: AlignmentType.CENTER,
               spacing: { after: 400 }
             }),
             ...createParagraphsFromMarkdown(questionsPart),
+            creditParagraph,
             new Paragraph({
               children: [new PageBreak()]
             }),
             new Paragraph({
-              text: "ĐÁP ÁN VÀ LỜI GIẢI CHI TIẾT",
+              children: [new TextRun({
+                text: "ĐÁP ÁN VÀ LỜI GIẢI CHI TIẾT",
+                bold: true,
+                size: 32,
+                font: "Times New Roman"
+              })],
               heading: HeadingLevel.HEADING_1,
               alignment: AlignmentType.CENTER,
               spacing: { before: 200, after: 400 }
             }),
-            ...createParagraphsFromMarkdown(answersPart)
+            ...createParagraphsFromMarkdown(answersPart),
+            creditParagraph
           ],
         }],
       });
@@ -137,7 +250,7 @@ export const ExamDisplay: React.FC<ExamDisplayProps> = ({ content }) => {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `De_Thi_EduGenVN_${new Date().toISOString().slice(0,10)}.docx`;
+      a.download = `De_Thi_EduGenVN_${new Date().toISOString().slice(0, 10)}.docx`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -178,15 +291,15 @@ export const ExamDisplay: React.FC<ExamDisplayProps> = ({ content }) => {
           )}
         </button>
       </div>
-      
+
       <div className="flex-grow flex flex-col lg:flex-row overflow-hidden bg-white">
         {/* Column 1: Questions */}
         <div className="flex-1 overflow-y-auto custom-scrollbar border-b lg:border-b-0 lg:border-r border-slate-200 p-6 min-h-[50%] lg:min-h-full">
-           <div className="sticky top-0 bg-white/95 backdrop-blur z-10 pb-2 mb-4 border-b border-teal-100">
-             <span className="text-xs font-bold text-teal-600 uppercase tracking-wider">Đề Bài</span>
-           </div>
-           <div className="prose prose-slate max-w-none prose-headings:font-bold prose-headings:text-teal-900 prose-p:text-slate-700 prose-strong:text-slate-900 prose-li:text-slate-700 prose-sm">
-             <ReactMarkdown remarkPlugins={[remarkGfm]}>
+          <div className="sticky top-0 bg-white/95 backdrop-blur z-10 pb-2 mb-4 border-b border-teal-100">
+            <span className="text-xs font-bold text-teal-600 uppercase tracking-wider">Đề Bài</span>
+          </div>
+          <div className="prose prose-slate max-w-none prose-headings:font-bold prose-headings:text-teal-900 prose-p:text-slate-700 prose-strong:text-slate-900 prose-li:text-slate-700 prose-sm">
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>
               {questionsPart}
             </ReactMarkdown>
           </div>
@@ -194,18 +307,18 @@ export const ExamDisplay: React.FC<ExamDisplayProps> = ({ content }) => {
 
         {/* Column 2: Answers */}
         <div className="flex-1 overflow-y-auto custom-scrollbar p-6 bg-teal-50/30 min-h-[50%] lg:min-h-full">
-           <div className="sticky top-0 bg-white/95 backdrop-blur z-10 pb-2 mb-4 border-b border-teal-100">
-             <span className="text-xs font-bold text-emerald-600 uppercase tracking-wider">Đáp Án & Lời Giải</span>
-           </div>
-           <div className="prose prose-slate max-w-none prose-headings:font-bold prose-headings:text-teal-900 prose-p:text-slate-700 prose-strong:text-slate-900 prose-li:text-slate-700 prose-sm">
+          <div className="sticky top-0 bg-white/95 backdrop-blur z-10 pb-2 mb-4 border-b border-teal-100">
+            <span className="text-xs font-bold text-emerald-600 uppercase tracking-wider">Đáp Án & Lời Giải</span>
+          </div>
+          <div className="prose prose-slate max-w-none prose-headings:font-bold prose-headings:text-teal-900 prose-p:text-slate-700 prose-strong:text-slate-900 prose-li:text-slate-700 prose-sm">
             {answersPart ? (
               <ReactMarkdown remarkPlugins={[remarkGfm]}>
                 {answersPart}
               </ReactMarkdown>
             ) : (
-               <div className="flex items-center justify-center h-40 text-teal-400 italic text-sm">
-                 Đáp án sẽ hiển thị tại đây sau khi đề bài được tạo xong...
-               </div>
+              <div className="flex items-center justify-center h-40 text-teal-400 italic text-sm">
+                Đáp án sẽ hiển thị tại đây sau khi đề bài được tạo xong...
+              </div>
             )}
           </div>
         </div>
