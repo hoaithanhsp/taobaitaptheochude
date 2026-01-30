@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Document, Packer, Paragraph, TextRun, HeadingLevel, PageBreak, AlignmentType } from "docx";
+import { Document, Packer, Paragraph, TextRun, HeadingLevel, PageBreak, AlignmentType, Table, TableRow, TableCell, BorderStyle, WidthType } from "docx";
 
 interface ExamDisplayProps {
   content: string;
@@ -64,8 +64,55 @@ export const ExamDisplay: React.FC<ExamDisplayProps> = ({ content }) => {
         return text.replace(/\*\*/g, '');
       };
 
-      const createParagraphsFromMarkdown = (text: string): Paragraph[] => {
-        const paragraphs: Paragraph[] = [];
+      // Hàm tạo bảng Word từ markdown table
+      const createTableFromMarkdown = (tableLines: string[]): Table => {
+        const cellBorder = { style: BorderStyle.SINGLE, size: 1, color: "000000" };
+        const borders = { top: cellBorder, bottom: cellBorder, left: cellBorder, right: cellBorder };
+
+        const rows: TableRow[] = [];
+
+        for (let i = 0; i < tableLines.length; i++) {
+          const line = tableLines[i].trim();
+          // Bỏ qua dòng separator (|---|---|)
+          if (line.match(/^\|[-:\s|]+\|$/)) continue;
+
+          // Parse cells từ dòng markdown table
+          const cells = line.split('|').filter(cell => cell.trim() !== '');
+
+          if (cells.length > 0) {
+            const isHeader = i === 0;
+            rows.push(new TableRow({
+              tableHeader: isHeader,
+              children: cells.map(cellText => new TableCell({
+                borders,
+                width: { size: Math.floor(9000 / cells.length), type: WidthType.DXA },
+                children: [new Paragraph({
+                  alignment: AlignmentType.CENTER,
+                  children: [new TextRun({
+                    text: cellText.trim(),
+                    bold: isHeader,
+                    size: 22,
+                    font: "Times New Roman"
+                  })]
+                })]
+              }))
+            }));
+          }
+        }
+
+        return new Table({
+          width: { size: 100, type: WidthType.PERCENTAGE },
+          rows
+        });
+      };
+
+      // Hàm kiểm tra xem một dòng có phải là markdown table không
+      const isTableLine = (line: string): boolean => {
+        return line.trim().startsWith('|') && line.trim().endsWith('|');
+      };
+
+      const createParagraphsFromMarkdown = (text: string): (Paragraph | Table)[] => {
+        const elements: (Paragraph | Table)[] = [];
         const lines = text.split('\n');
 
         for (let i = 0; i < lines.length; i++) {
@@ -73,7 +120,23 @@ export const ExamDisplay: React.FC<ExamDisplayProps> = ({ content }) => {
           const cleanLine = line.trim();
 
           if (!cleanLine) {
-            paragraphs.push(new Paragraph({ children: [new TextRun({ text: "", font: "Times New Roman" })] }));
+            elements.push(new Paragraph({ children: [new TextRun({ text: "", font: "Times New Roman" })] }));
+            continue;
+          }
+
+          // Xử lý markdown table (Bảng đáp án nhanh)
+          if (isTableLine(cleanLine)) {
+            // Thu thập tất cả các dòng của table
+            const tableLines: string[] = [cleanLine];
+            while (i + 1 < lines.length && isTableLine(lines[i + 1].trim())) {
+              i++;
+              tableLines.push(lines[i].trim());
+            }
+            // Tạo bảng Word
+            if (tableLines.length >= 2) {
+              elements.push(createTableFromMarkdown(tableLines));
+              elements.push(new Paragraph({ children: [new TextRun({ text: "", font: "Times New Roman" })] })); // Spacing after table
+            }
             continue;
           }
 
@@ -82,7 +145,7 @@ export const ExamDisplay: React.FC<ExamDisplayProps> = ({ content }) => {
 
           // Headers
           if (cleanLine.startsWith('### ')) {
-            paragraphs.push(new Paragraph({
+            elements.push(new Paragraph({
               children: [new TextRun({
                 text: processText(cleanLine.replace('### ', '')),
                 bold: true,
@@ -95,7 +158,7 @@ export const ExamDisplay: React.FC<ExamDisplayProps> = ({ content }) => {
             continue;
           }
           if (cleanLine.startsWith('## ')) {
-            paragraphs.push(new Paragraph({
+            elements.push(new Paragraph({
               children: [new TextRun({
                 text: processText(cleanLine.replace('## ', '')),
                 bold: true,
@@ -108,11 +171,11 @@ export const ExamDisplay: React.FC<ExamDisplayProps> = ({ content }) => {
             continue;
           }
 
-          // Kiểm tra nếu là câu hỏi (Câu X:) - thêm khoảng cách trước và in đậm
-          if (cleanLine.match(/^(\*\*)?(Câu|Bài)\s*\d+[:.]/i)) {
-            paragraphs.push(new Paragraph({
+          // Kiểm tra nếu là câu hỏi (Câu X:, Câu X., Câu X) - thêm khoảng cách trước và in đậm toàn bộ dòng câu hỏi
+          if (cleanLine.match(/^(\*\*)?(Câu|Bài)\s*\d+/i)) {
+            elements.push(new Paragraph({
               children: [new TextRun({
-                text: processText(cleanLine.replace(/\*\*/g, '')),
+                text: processText(cleanLine),
                 bold: true,
                 size: 24,
                 font: "Times New Roman"
@@ -122,10 +185,24 @@ export const ExamDisplay: React.FC<ExamDisplayProps> = ({ content }) => {
             continue;
           }
 
+          // Kiểm tra nếu là "Lời giải", "Hướng dẫn giải", "Giải" - in đậm
+          if (cleanLine.match(/^(\*\*)?(Lời giải|Hướng dẫn giải|Giải|Đáp án đúng)/i)) {
+            elements.push(new Paragraph({
+              children: [new TextRun({
+                text: processText(cleanLine),
+                bold: true,
+                size: 24,
+                font: "Times New Roman"
+              })],
+              spacing: { before: 200, after: 100 }
+            }));
+            continue;
+          }
+
           // Kiểm tra nếu là đáp án A., B., C., D. - in đậm ký tự đầu
           const answerMatch = processedLine.match(/^([A-D])\.\s*(.*)$/);
           if (answerMatch) {
-            paragraphs.push(new Paragraph({
+            elements.push(new Paragraph({
               children: [
                 new TextRun({
                   text: answerMatch[1] + ". ",
@@ -144,17 +221,26 @@ export const ExamDisplay: React.FC<ExamDisplayProps> = ({ content }) => {
             continue;
           }
 
+          // Xử lý bullet points markdown (-, +, *) thành dạng trực quan
+          let displayLine = processedLine;
+          let isBullet = false;
+          const bulletMatch = displayLine.match(/^[-+*]\s+(.*)$/);
+          if (bulletMatch) {
+            displayLine = "• " + bulletMatch[1];
+            isBullet = true;
+          }
+
           // Normal text - xử lý markdown bold (**text**)
           const boldPattern = /\*\*([^*]+)\*\*/g;
           const parts: TextRun[] = [];
           let lastIndex = 0;
           let match;
 
-          while ((match = boldPattern.exec(processedLine)) !== null) {
+          while ((match = boldPattern.exec(displayLine)) !== null) {
             // Text trước phần bold
             if (match.index > lastIndex) {
               parts.push(new TextRun({
-                text: processedLine.slice(lastIndex, match.index),
+                text: displayLine.slice(lastIndex, match.index),
                 size: 24,
                 font: "Times New Roman"
               }));
@@ -170,9 +256,9 @@ export const ExamDisplay: React.FC<ExamDisplayProps> = ({ content }) => {
           }
 
           // Text còn lại sau phần bold cuối cùng
-          if (lastIndex < processedLine.length) {
+          if (lastIndex < displayLine.length) {
             parts.push(new TextRun({
-              text: processedLine.slice(lastIndex).replace(/\*\*/g, ''),
+              text: displayLine.slice(lastIndex).replace(/\*\*/g, ''),
               size: 24,
               font: "Times New Roman"
             }));
@@ -181,19 +267,20 @@ export const ExamDisplay: React.FC<ExamDisplayProps> = ({ content }) => {
           // Nếu không có phần bold nào
           if (parts.length === 0) {
             parts.push(new TextRun({
-              text: processedLine.replace(/\*\*/g, ''),
+              text: displayLine.replace(/\*\*/g, ''),
               size: 24,
               font: "Times New Roman"
             }));
           }
 
-          paragraphs.push(new Paragraph({
+          elements.push(new Paragraph({
             children: parts,
-            spacing: { after: 100 }
+            spacing: { after: 100 },
+            indent: isBullet ? { left: 360 } : undefined
           }));
         }
 
-        return paragraphs;
+        return elements;
       };
 
       // Tạo dòng credit EDUGENVN
