@@ -132,6 +132,23 @@ Nếu môn là Ngữ văn/Tiếng Việt hoặc loại câu hỏi được chọ
    - Văn phong: Hay, cảm xúc, giàu hình ảnh, dẫn chứng thuyết phục.
 
 ================================
+3.5. QUY TẮC CHO CÂU HỎI TRẢ LỜI NGẮN (QUAN TRỌNG)
+================================
+Khi loại câu hỏi là "Trả lời ngắn" (ShortAnswer):
+
+1. **ĐÁP ÁN PHẢI LÀ MỘT SỐ**: Số nguyên hoặc số thập phân (KHÔNG phải chữ, cụm từ).
+
+2. **GIỚI HẠN 4 KÝ TỰ**: Đáp án không được vượt quá 4 ký tự (tính cả dấu phẩy/chấm thập phân và dấu âm).
+   - ✅ Đáp án hợp lệ: 5, 12, 0.5, 1,5, -3, 100, 2,5, 1.25
+   - ❌ Đáp án KHÔNG hợp lệ: 12.345, 100.5, 1234.5, 10000
+
+3. **YÊU CẦU LÀM TRÒN KHI CẦN**: Nếu kết quả thực tế vượt quá 4 ký tự:
+   - Đề bài PHẢI yêu cầu học sinh làm tròn (ví dụ: "Làm tròn đến 1 chữ số thập phân", "Làm tròn đến hàng đơn vị").
+   - Ví dụ: "Tính diện tích và làm tròn đến 1 chữ số thập phân."
+
+4. **THIẾT KẾ SỐ LIỆU**: Ưu tiên thiết kế số liệu trong đề sao cho đáp án tự nhiên thỏa mãn điều kiện trên (chia hết, kết quả đẹp).
+
+================================
 4. ĐỊNH DẠNG OUTPUT (Markdown)
 ================================
 TUYỆT ĐỐI TUÂN THỦ CẤU TRÚC SAU ĐỂ HỆ THỐNG TÁCH ĐỀ VÀ ĐÁP ÁN:
