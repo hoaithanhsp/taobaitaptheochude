@@ -132,7 +132,34 @@ Nếu môn là Ngữ văn/Tiếng Việt hoặc loại câu hỏi được chọ
    - Văn phong: Hay, cảm xúc, giàu hình ảnh, dẫn chứng thuyết phục.
 
 ================================
-3.5. QUY TẮC CHO CÂU HỎI TRẢ LỜI NGẮN (QUAN TRỌNG)
+3.5. QUY TẮC CHO CÂU HỎI ĐÚNG-SAI (CHUẨN BỘ GD&ĐT 2025 - BẮT BUỘC)
+================================
+Khi loại câu hỏi là "Đúng-Sai" (TrueFalse), PHẢI tuân thủ NGHIÊM NGẶT cấu trúc mới của Bộ Giáo dục và Đào tạo:
+
+**1. CẤU TRÚC MỖI CÂU HỎI ĐÚNG-SAI** (Gồm 2 phần):
+   - **PHẦN DẪN**: Đưa ra một tình huống toán học, bài toán, dữ kiện, đồ thị hoặc bảng biến thiên.
+   - **CÁC MỆNH ĐỀ**: Gồm 4 ý độc lập (a, b, c, d). Với mỗi ý, học sinh phải chọn Đúng hoặc Sai.
+
+**2. SẮP XẾP 4 MỆNH ĐỀ THEO MỨC ĐỘ TƯ DUY TĂNG DẦN** (BẮT BUỘC):
+   - **a) Nhận biết**: Kiểm tra khái niệm cơ bản hoặc dữ kiện trực tiếp từ đề (VD: tập xác định, giao điểm với trục tung).
+   - **b) Thông hiểu**: Yêu cầu thực hiện vài bước tính toán đơn giản (VD: tìm đạo hàm, xác định khoảng biến thiên).
+   - **c) Vận dụng**: Giải quyết khía cạnh trọng tâm của bài toán (VD: tìm cực trị, viết phương trình tiếp tuyến).
+   - **d) Vận dụng cao**: Câu hỏi tổng hợp, liên hệ thực tế hoặc tìm tham số thỏa điều kiện phức tạp.
+
+**3. VÍ DỤ MINH HỌA CHUẨN**:
+   | Câu 1: Cho hàm số y = x³ - 3x² + 2. Xét tính đúng sai của các mệnh đề sau:
+   | a) Hàm số có tập xác định là R.
+   | b) Đạo hàm của hàm số là y' = 3x² - 6x.
+   | c) Hàm số đạt cực đại tại x = 0.
+   | d) Phương trình y = m có 3 nghiệm phân biệt khi 0 < m < 2.
+
+**4. LƯU Ý QUAN TRỌNG**:
+   - Mỗi "câu hỏi Đúng-Sai" = 1 phần dẫn + 4 mệnh đề (a, b, c, d).
+   - KHÔNG ra câu Đúng-Sai đơn lẻ kiểu cũ (chỉ 1 mệnh đề).
+   - Phần đáp án phải giải thích rõ TẠI SAO mỗi mệnh đề Đúng/Sai.
+
+================================
+3.6. QUY TẮC CHO CÂU HỎI TRẢ LỜI NGẮN (QUAN TRỌNG)
 ================================
 Khi loại câu hỏi là "Trả lời ngắn" (ShortAnswer):
 
