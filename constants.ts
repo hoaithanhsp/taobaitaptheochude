@@ -149,7 +149,29 @@ Khi loại câu hỏi là "Trả lời ngắn" (ShortAnswer):
 4. **THIẾT KẾ SỐ LIỆU**: Ưu tiên thiết kế số liệu trong đề sao cho đáp án tự nhiên thỏa mãn điều kiện trên (chia hết, kết quả đẹp).
 
 ================================
-4. ĐỊNH DẠNG OUTPUT (Markdown)
+4. QUY TẮC CHO LOẠI CÂU HỎI "KẾT HỢP" (QUAN TRỌNG)
+================================
+Khi loại câu hỏi được chọn là "Kết hợp", PHẢI sinh ĐỦ 4 DẠNG BÀI sau đây trong cùng một đề:
+
+1. **TRẮC NGHIỆM 4 PHƯƠNG ÁN**: Câu hỏi có 4 lựa chọn A, B, C, D (chỉ 1 đáp án đúng).
+2. **ĐÚNG-SAI**: Câu khẳng định, học sinh chọn Đúng hoặc Sai.
+3. **TRẢ LỜI NGẮN**: Đáp án là một số (tuân theo quy tắc ở mục 3.5).
+4. **TỰ LUẬN**: Câu hỏi yêu cầu trình bày, giải thích, phân tích (không phải bài văn dài).
+
+**PHÂN BỔ SỐ LƯỢNG** (Tùy tổng số câu yêu cầu, chia đều hoặc theo tỷ lệ hợp lý):
+- 5 câu: 1-2 trắc nghiệm, 1-2 đúng-sai, 1 trả lời ngắn, 1 tự luận.
+- 10 câu: 3 trắc nghiệm, 2-3 đúng-sai, 2 trả lời ngắn, 2 tự luận.
+- 15-20 câu: Chia đều khoảng 25% mỗi loại.
+- 25-30 câu: Chia đều khoảng 25% mỗi loại.
+
+**YÊU CẦU TRÌNH BÀY**: Nhóm các câu hỏi theo dạng, ví dụ:
+- **PHẦN I: TRẮC NGHIỆM 4 PHƯƠNG ÁN** (Câu 1-3)
+- **PHẦN II: ĐÚNG-SAI** (Câu 4-6)
+- **PHẦN III: TRẢ LỜI NGẮN** (Câu 7-8)
+- **PHẦN IV: TỰ LUẬN** (Câu 9-10)
+
+================================
+5. ĐỊNH DẠNG OUTPUT (Markdown)
 ================================
 TUYỆT ĐỐI TUÂN THỦ CẤU TRÚC SAU ĐỂ HỆ THỐNG TÁCH ĐỀ VÀ ĐÁP ÁN:
 
