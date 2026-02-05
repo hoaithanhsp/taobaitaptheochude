@@ -27,9 +27,10 @@ export const generateExamStream = async (
 
   const isLiterature = request.subject === 'Ngữ văn / Tiếng Việt';
   const isEssay = request.type === QuestionType.Essay;
+  const isMixed = request.type === QuestionType.Mixed;
 
   let extraPrompt = '';
-  
+
   if (isLiterature || isEssay) {
     extraPrompt = `
     LƯU Ý ĐẶC BIỆT: Đây là yêu cầu tạo đề Văn / Bài tự luận.
@@ -37,6 +38,17 @@ export const generateExamStream = async (
     2. Yêu cầu đáp án (Trong PHẦN 2): BẮT BUỘC PHẢI BAO GỒM 2 MỤC:
        - A. Dàn ý chi tiết.
        - B. Bài văn hoàn chỉnh (Độ dài khoảng ${request.literaturePageCount || 2} trang).
+    `;
+  } else if (isMixed) {
+    extraPrompt = `
+    LƯU Ý QUAN TRỌNG: Loại câu hỏi "Kết hợp" - BẮT BUỘC PHẢI CÓ ĐỦ 4 DẠNG BÀI sau:
+    1. TRẮC NGHIỆM 4 PHƯƠNG ÁN: Câu hỏi có 4 lựa chọn A, B, C, D.
+    2. ĐÚNG-SAI: Câu khẳng định, học sinh chọn Đúng hoặc Sai.
+    3. TRẢ LỜI NGẮN: Đáp án là một số (tối đa 4 ký tự).
+    4. TỰ LUẬN: Câu hỏi yêu cầu trình bày, giải thích ngắn gọn.
+    
+    Phân bổ ${request.questionCount} câu: Chia đều cho 4 dạng (mỗi dạng ít nhất 1 câu).
+    Trình bày theo từng PHẦN: PHẦN I (Trắc nghiệm), PHẦN II (Đúng-Sai), PHẦN III (Trả lời ngắn), PHẦN IV (Tự luận).
     `;
   }
 
@@ -68,9 +80,9 @@ export const generateExamStream = async (
   for (const modelId of uniqueModels) {
     try {
       console.log(`Attempting generation with model: ${modelId}`);
-      
+
       const ai = new GoogleGenAI({ apiKey });
-      
+
       const responseStream = await ai.models.generateContentStream({
         model: modelId,
         contents: [
@@ -83,7 +95,7 @@ export const generateExamStream = async (
           systemInstruction: SYSTEM_INSTRUCTION,
           temperature: 0.4,
           maxOutputTokens: 8192,
-          thinkingConfig: modelId.includes('gemini-2.5') ? undefined : { thinkingBudget: 0 }, 
+          thinkingConfig: modelId.includes('gemini-2.5') ? undefined : { thinkingBudget: 0 },
         },
       });
 
