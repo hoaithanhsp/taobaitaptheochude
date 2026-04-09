@@ -100,6 +100,10 @@ export const ExamDisplay: React.FC<ExamDisplayProps> = ({ content }) => {
           }
         }
 
+        if (rows.length === 0) {
+          throw new Error("Table has no valid rows");
+        }
+
         return new Table({
           width: { size: 100, type: WidthType.PERCENTAGE },
           rows
@@ -132,10 +136,21 @@ export const ExamDisplay: React.FC<ExamDisplayProps> = ({ content }) => {
               i++;
               tableLines.push(lines[i].trim());
             }
-            // Tạo bảng Word
+            // Tạo bảng Word (cần ít nhất 2 dòng và phải có row thực tế, không chỉ separator)
             if (tableLines.length >= 2) {
-              elements.push(createTableFromMarkdown(tableLines));
-              elements.push(new Paragraph({ children: [new TextRun({ text: "", font: "Times New Roman" })] })); // Spacing after table
+              try {
+                const table = createTableFromMarkdown(tableLines);
+                elements.push(table);
+                elements.push(new Paragraph({ children: [new TextRun({ text: "", font: "Times New Roman" })] })); // Spacing after table
+              } catch (e) {
+                // Nếu tạo bảng thất bại, fallback hiển thị dạng text
+                for (const tl of tableLines) {
+                  elements.push(new Paragraph({
+                    children: [new TextRun({ text: tl.replace(/\|/g, ' | ').trim(), size: 24, font: "Times New Roman" })],
+                    spacing: { after: 80 }
+                  }));
+                }
+              }
             }
             continue;
           }
@@ -300,8 +315,8 @@ export const ExamDisplay: React.FC<ExamDisplayProps> = ({ content }) => {
         return elements;
       };
 
-      // Tạo dòng credit EDUGENVN
-      const creditParagraph = new Paragraph({
+      // Hàm tạo dòng credit EDUGENVN (cần tạo instance riêng cho mỗi lần dùng)
+      const createCreditParagraph = () => new Paragraph({
         children: [new TextRun({
           text: "Bài tập được tạo thành công từ EDUGENVN - Phát triển bởi thầy Trần Hoài Thanh",
           italics: true,
@@ -329,7 +344,7 @@ export const ExamDisplay: React.FC<ExamDisplayProps> = ({ content }) => {
               spacing: { after: 400 }
             }),
             ...createParagraphsFromMarkdown(questionsPart),
-            creditParagraph,
+            createCreditParagraph(),
             new Paragraph({
               children: [new PageBreak()]
             }),
@@ -345,7 +360,7 @@ export const ExamDisplay: React.FC<ExamDisplayProps> = ({ content }) => {
               spacing: { before: 200, after: 400 }
             }),
             ...createParagraphsFromMarkdown(answersPart),
-            creditParagraph
+            createCreditParagraph()
           ],
         }],
       });
