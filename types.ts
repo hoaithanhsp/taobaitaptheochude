@@ -37,7 +37,9 @@ export enum LiteratureAnswerType {
 
 export type LiteraturePageCount = 1 | 2 | 3 | 4 | 5;
 
-export type AIModelId = 'gemini-3-flash-preview' | 'gemini-3-pro-preview' | 'gemini-2.5-flash';
+export type AiProvider = 'gemini' | 'agent-platform';
+
+export type AIModelId = string;
 
 export interface ExamRequest {
   subject: string;

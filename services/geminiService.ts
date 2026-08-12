@@ -1,28 +1,172 @@
 import { GoogleGenAI } from "@google/genai";
 import { SYSTEM_INSTRUCTION } from "../constants";
-import { ExamRequest, QuestionType, AIModelId } from "../types";
+import { ExamRequest, QuestionType, AiProvider } from "../types";
 
-// Danh sách ưu tiên fallback
-const FALLBACK_ORDER: AIModelId[] = [
-  'gemini-3-flash-preview',
-  'gemini-3-pro-preview',
+export const GOOGLE_AI_API_KEY_PATTERN = /^(?:AIzaSy|AQ)\S{8,}$/;
+
+export const cleanApiKey = (key: string): string => {
+  return key.replace(/[^\x00-\x7F]/g, "").trim();
+};
+
+export const isValidApiKey = (key: string): boolean => {
+  const cleaned = cleanApiKey(key);
+  return GOOGLE_AI_API_KEY_PATTERN.test(cleaned);
+};
+
+// Client factory dùng chung - BẮT BUỘC THEO chuẩn api.md
+export const createGoogleAiClient = (
+  apiKey: string,
+  provider: AiProvider
+): GoogleGenAI => {
+  const cleanedKey = cleanApiKey(apiKey);
+  if (provider === 'agent-platform') {
+    // Cờ kỹ thuật của Google Gen AI SDK để định tuyến tới aiplatform.googleapis.com
+    return new GoogleGenAI({ vertexai: true, apiKey: cleanedKey });
+  }
+  return new GoogleGenAI({ apiKey: cleanedKey });
+};
+
+// Danh sách Model hỗ trợ cho Google Gemini API
+export const GEMINI_MODELS = [
+  {
+    id: 'gemini-3.6-flash',
+    name: 'Gemini 3.6 Flash',
+    desc: 'Mặc định; siêu nhanh, thông minh & tối ưu',
+    badge: 'Khuyên dùng'
+  },
+  {
+    id: 'gemini-3.5-flash',
+    name: 'Gemini 3.5 Flash',
+    desc: 'Chất lượng cao, dự phòng chuẩn'
+  },
+  {
+    id: 'gemini-3.5-flash-lite',
+    name: 'Gemini 3.5 Flash Lite',
+    desc: 'Tốc độ cao, tối ưu chi phí'
+  },
+  {
+    id: 'gemini-2.5-pro',
+    name: 'Gemini 2.5 Pro',
+    desc: 'Suy luận logic chuyên sâu'
+  },
+  {
+    id: 'gemini-2.5-flash',
+    name: 'Gemini 2.5 Flash',
+    desc: 'Phiên bản ổn định, tiết kiệm'
+  }
+];
+
+export const GEMINI_FALLBACK_CHAIN = [
+  'gemini-3.6-flash',
+  'gemini-3.5-flash',
+  'gemini-3.5-flash-lite',
+  'gemini-3.1-flash-lite',
   'gemini-2.5-flash'
 ];
+
+// Danh sách Model hỗ trợ cho Agent Platform API
+export const AGENT_PLATFORM_MODELS = [
+  {
+    id: 'gemini-2.5-flash',
+    name: 'Gemini 2.5 Flash',
+    desc: 'Mặc định Agent Platform; ổn định & tiết kiệm',
+    badge: 'Mặc định'
+  },
+  {
+    id: 'gemini-2.5-flash-lite',
+    name: 'Gemini 2.5 Flash Lite',
+    desc: 'Tốc độ cao, đáp ứng tức thì'
+  },
+  {
+    id: 'gemini-2.5-pro',
+    name: 'Gemini 2.5 Pro',
+    desc: 'Suy luận nâng cao'
+  },
+  {
+    id: 'gemini-3.1-pro-preview',
+    name: 'Gemini 3.1 Pro Preview',
+    desc: 'Thế hệ mới (Preview)'
+  }
+];
+
+export const AGENT_PLATFORM_FALLBACK_CHAIN = [
+  'gemini-2.5-flash',
+  'gemini-2.5-flash-lite'
+];
+
+// Lấy danh sách model có thứ tự (Model người dùng chọn đứng trước)
+export const getOrderedModels = (selectedModel: string, provider: AiProvider): string[] => {
+  const isAgentPlatform = provider === 'agent-platform';
+  const fallbackChain = isAgentPlatform ? AGENT_PLATFORM_FALLBACK_CHAIN : GEMINI_FALLBACK_CHAIN;
+  const validModelIds = isAgentPlatform
+    ? AGENT_PLATFORM_MODELS.map(m => m.id)
+    : GEMINI_MODELS.map(m => m.id);
+
+  const defaultModel = isAgentPlatform ? 'gemini-2.5-flash' : 'gemini-3.6-flash';
+  const initialModel = validModelIds.includes(selectedModel) ? selectedModel : defaultModel;
+
+  const rawList = [initialModel, ...fallbackChain];
+  return Array.from(new Set(rawList));
+};
+
+export type ApiErrorType =
+  | 'API_KEY_INVALID'
+  | 'PERMISSION_DENIED'
+  | 'QUOTA_EXCEEDED'
+  | 'INVALID_ARGUMENT'
+  | 'MODEL_OVERLOADED'
+  | 'NOT_FOUND'
+  | 'UNKNOWN_ERROR';
+
+export const parseApiError = (error: any): ApiErrorType => {
+  const status = error?.status || error?.errorDetails?.[0]?.reason || error?.code;
+  const msg = (error?.message || String(error)).toLowerCase();
+
+  if (status === 401 || msg.includes('api_key_invalid') || msg.includes('invalid api key') || msg.includes('unauthorized')) {
+    return 'API_KEY_INVALID';
+  }
+  if (status === 403 || msg.includes('permission_denied') || msg.includes('permission denied')) {
+    return 'PERMISSION_DENIED';
+  }
+  if (status === 429 || msg.includes('resource_exhausted') || msg.includes('quota exceeded') || msg.includes('rate limit')) {
+    return 'QUOTA_EXCEEDED';
+  }
+  if (status === 400 || msg.includes('invalid_argument') || msg.includes('bad request')) {
+    return 'INVALID_ARGUMENT';
+  }
+  if (
+    status === 500 ||
+    status === 503 ||
+    status === 504 ||
+    msg.includes('overloaded') ||
+    msg.includes('high demand') ||
+    msg.includes('try again later') ||
+    msg.includes('temporarily unavailable') ||
+    msg.includes('service unavailable')
+  ) {
+    return 'MODEL_OVERLOADED';
+  }
+  if (status === 404 || msg.includes('not_found') || msg.includes('model not found')) {
+    return 'NOT_FOUND';
+  }
+  return 'UNKNOWN_ERROR';
+};
 
 export const generateExamStream = async (
   request: ExamRequest,
   apiKey: string,
-  onChunk: (text: string) => void
+  provider: AiProvider,
+  onChunk: (text: string) => void,
+  onModelFallback?: (fromModel: string, toModel: string, reason: string) => void
 ): Promise<void> => {
-  if (!apiKey) {
-    throw new Error("Vui lòng nhập API Key để sử dụng.");
+  const cleanedKey = cleanApiKey(apiKey);
+  if (!cleanedKey) {
+    throw new Error("Vui lòng cấu hình API Key trước khi sử dụng tính năng này.");
   }
 
-  // KIỂM TRA QUAN TRỌNG: API Key không được chứa ký tự Unicode (Tiếng Việt)
-  // Lỗi "non ISO-8859-1 code point" xảy ra do key chứa ký tự lạ.
-  // eslint-disable-next-line no-control-regex
-  if (/[^\x00-\x7F]/.test(apiKey)) {
-    throw new Error("API Key không hợp lệ (chứa ký tự tiếng Việt hoặc ký tự lạ). Vui lòng xóa và nhập lại API Key chuẩn.");
+  // Kiểm tra ký tự Unicode
+  if (/[^\x00-\x7F]/.test(cleanedKey)) {
+    throw new Error("API Key không hợp lệ (chứa ký tự tiếng Việt hoặc ký tự lạ). Vui lòng kiểm tra lại API Key.");
   }
 
   const isLiterature = request.subject === 'Ngữ văn / Tiếng Việt';
@@ -66,37 +210,35 @@ export const generateExamStream = async (
     Hãy lưu ý đặc thù của môn ${request.subject} ở lớp ${request.grade} để sử dụng ngôn ngữ và kiến thức phù hợp nhất.
   `;
 
-  // Xác định danh sách model cần thử: Bắt đầu bằng model người dùng chọn, sau đó là các model còn lại theo thứ tự ưu tiên
-  const modelsToTry = [
-    request.model,
-    ...FALLBACK_ORDER.filter(m => m !== request.model)
-  ];
-
-  // Loại bỏ trùng lặp (nếu có)
-  const uniqueModels = [...new Set(modelsToTry)];
+  const modelsToTry = getOrderedModels(request.model, provider);
+  const ai = createGoogleAiClient(cleanedKey, provider);
 
   let lastError: any = null;
 
-  for (const modelId of uniqueModels) {
+  for (let i = 0; i < modelsToTry.length; i++) {
+    const currentModel = modelsToTry[i];
     try {
-      console.log(`Attempting generation with model: ${modelId}`);
+      console.log(`[${provider}] Attempting generation with model: ${currentModel}`);
 
-      const ai = new GoogleGenAI({ apiKey });
+      const config: any = {
+        systemInstruction: SYSTEM_INSTRUCTION,
+        maxOutputTokens: 8192,
+      };
+
+      // Chỉ thêm thinkingConfig cho model Gemini 3
+      if (currentModel.includes('gemini-3')) {
+        config.thinkingConfig = { thinkingLevel: 'HIGH' };
+      }
 
       const responseStream = await ai.models.generateContentStream({
-        model: modelId,
+        model: currentModel,
         contents: [
           {
             role: 'user',
             parts: [{ text: userPrompt }],
           },
         ],
-        config: {
-          systemInstruction: SYSTEM_INSTRUCTION,
-          temperature: 0.4,
-          maxOutputTokens: 8192,
-          thinkingConfig: modelId.includes('gemini-2.5') ? undefined : { thinkingBudget: 0 },
-        },
+        config,
       });
 
       for await (const chunk of responseStream) {
@@ -106,16 +248,58 @@ export const generateExamStream = async (
         }
       }
 
-      // Nếu chạy thành công đến đây, thoát khỏi vòng lặp
+      // Đã tạo xong thành công
       return;
 
     } catch (error: any) {
-      console.warn(`Model ${modelId} failed:`, error);
+      console.warn(`[${provider}] Model ${currentModel} failed:`, error);
       lastError = error;
-      // Tiếp tục vòng lặp để thử model tiếp theo
+
+      const errorType = parseApiError(error);
+
+      // Các lỗi nghiêm trọng -> Dừng ngay không fallback
+      if (errorType === 'API_KEY_INVALID') {
+        throw new Error("API Key không hợp lệ hoặc đã hết hạn. Vui lòng kiểm tra lại trong Cài đặt.");
+      }
+      if (errorType === 'QUOTA_EXCEEDED') {
+        throw new Error("Đã hết quota hoặc vượt giới hạn tốc độ API. Vui lòng đợi rồi thử lại.");
+      }
+      if (errorType === 'PERMISSION_DENIED') {
+        if (provider === 'agent-platform') {
+          // Với Agent Platform API, có thể thử model tương thích tiếp theo trước khi báo lỗi
+          if (i < modelsToTry.length - 1) {
+            const nextModel = modelsToTry[i + 1];
+            if (onModelFallback) {
+              onModelFallback(currentModel, nextModel, "Dự án/Key chưa được cấp quyền truy cập model hiện tại");
+            }
+            continue;
+          }
+          throw new Error("API key không có quyền truy cập Agent Platform API hoặc model này. Vui lòng kiểm tra lại quyền trong dự án Google Cloud.");
+        } else {
+          throw new Error("API key không có quyền truy cập Gemini API.");
+        }
+      }
+      if (errorType === 'INVALID_ARGUMENT') {
+        throw new Error(`Yêu cầu không hợp lệ (${error.message || 'INVALID_ARGUMENT'}).`);
+      }
+
+      // Nếu lỗi cho phép fallback (Quá tải, 500, 503, NOT_FOUND...) và còn model tiếp theo
+      if (i < modelsToTry.length - 1) {
+        const nextModel = modelsToTry[i + 1];
+        const reason = errorType === 'NOT_FOUND' ? 'Model không khả dụng' : 'Model đang quá tải';
+        console.info(`[${provider}] Fallback triggered: ${currentModel} -> ${nextModel} (${reason})`);
+        if (onModelFallback) {
+          onModelFallback(currentModel, nextModel, reason);
+        }
+        continue;
+      }
     }
   }
 
-  // Nếu thử hết tất cả model mà vẫn lỗi
+  const finalErrorType = parseApiError(lastError);
+  if (finalErrorType === 'MODEL_OVERLOADED') {
+    throw new Error("Model đang quá tải; app đã tự động thử các model dự phòng nhưng không thành công. Vui lòng thử lại sau.");
+  }
+
   throw lastError || new Error("Không thể tạo đề thi với bất kỳ model nào. Vui lòng kiểm tra API Key hoặc thử lại sau.");
 };

@@ -1,41 +1,27 @@
 import React from 'react';
 import { GRADES, QUESTION_TYPES, DIFFICULTIES, QUESTION_COUNTS, SUBJECTS, LIT_PAGE_COUNTS } from '../constants';
-import { ExamRequest, QuestionType, AIModelId } from '../types';
+import { ExamRequest, QuestionType, AiProvider } from '../types';
+import { GEMINI_MODELS, AGENT_PLATFORM_MODELS } from '../services/geminiService';
 
 interface InputFormProps {
   request: ExamRequest;
+  provider: AiProvider;
   onChange: (field: keyof ExamRequest, value: string | number) => void;
   onSubmit: () => void;
   isGenerating: boolean;
 }
 
-const MODELS: { id: AIModelId; name: string; desc: string; badge?: string }[] = [
-  { 
-    id: 'gemini-3-flash-preview', 
-    name: 'Gemini 3 Flash', 
-    desc: 'Tốc độ cực nhanh, thông minh', 
-    badge: 'Khuyên dùng' 
-  },
-  { 
-    id: 'gemini-3-pro-preview', 
-    name: 'Gemini 3 Pro', 
-    desc: 'Tư duy logic phức tạp tốt hơn' 
-  },
-  { 
-    id: 'gemini-2.5-flash', 
-    name: 'Gemini 2.5 Flash', 
-    desc: 'Phiên bản ổn định, tiết kiệm' 
-  },
-];
-
 export const InputForm: React.FC<InputFormProps> = ({
   request,
+  provider,
   onChange,
   onSubmit,
   isGenerating,
 }) => {
   const isLiterature = request.subject === 'Ngữ văn / Tiếng Việt';
   const isEssayType = request.type === QuestionType.Essay;
+
+  const currentModels = provider === 'agent-platform' ? AGENT_PLATFORM_MODELS : GEMINI_MODELS;
 
   return (
     <div className="bg-white rounded-xl shadow-md border border-teal-100 p-6 space-y-6">
@@ -49,27 +35,50 @@ export const InputForm: React.FC<InputFormProps> = ({
 
       {/* Model Selection */}
       <div className="space-y-3">
-        <label className="block text-sm font-bold text-teal-900">Chọn Mô hình AI (Model)</label>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {MODELS.map((model) => (
-            <div
-              key={model.id}
-              onClick={() => onChange('model', model.id)}
-              className={`cursor-pointer rounded-lg border p-3 transition-all relative ${
-                request.model === model.id
-                  ? 'border-teal-500 bg-teal-50 ring-2 ring-teal-500 shadow-md'
-                  : 'border-slate-200 hover:border-teal-300 hover:bg-teal-50/50 hover:shadow-sm'
-              }`}
-            >
-              {model.badge && (
-                <span className="absolute -top-2 -right-2 bg-rose-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm">
-                  {model.badge}
-                </span>
-              )}
-              <div className={`font-semibold text-sm ${request.model === model.id ? 'text-teal-900' : 'text-slate-800'}`}>{model.name}</div>
-              <div className="text-xs text-slate-500 mt-1">{model.desc}</div>
-            </div>
-          ))}
+        <div className="flex items-center justify-between">
+          <label className="block text-sm font-bold text-teal-900">Chọn Mô hình AI (Model)</label>
+          <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${
+            provider === 'agent-platform'
+              ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+              : 'bg-teal-50 text-teal-700 border-teal-200'
+          }`}>
+            {provider === 'agent-platform' ? 'Agent Platform API' : 'Google Gemini API'}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {currentModels.map((model) => {
+            const isSelected = request.model === model.id;
+            return (
+              <div
+                key={model.id}
+                onClick={() => onChange('model', model.id)}
+                className={`cursor-pointer rounded-xl border p-3 transition-all relative ${
+                  isSelected
+                    ? provider === 'agent-platform'
+                      ? 'border-indigo-500 bg-indigo-50/70 ring-2 ring-indigo-500 shadow-md'
+                      : 'border-teal-500 bg-teal-50 ring-2 ring-teal-500 shadow-md'
+                    : 'border-slate-200 hover:border-teal-300 hover:bg-teal-50/50 hover:shadow-sm'
+                }`}
+              >
+                {model.badge && (
+                  <span className={`absolute -top-2 -right-2 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm ${
+                    provider === 'agent-platform' ? 'bg-indigo-600' : 'bg-rose-500'
+                  }`}>
+                    {model.badge}
+                  </span>
+                )}
+                <div className={`font-semibold text-sm ${
+                  isSelected
+                    ? provider === 'agent-platform' ? 'text-indigo-950' : 'text-teal-950'
+                    : 'text-slate-800'
+                }`}>
+                  {model.name}
+                </div>
+                <div className="text-xs text-slate-500 mt-1 leading-snug">{model.desc}</div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -227,6 +236,8 @@ export const InputForm: React.FC<InputFormProps> = ({
           className={`w-full flex items-center justify-center py-4 px-6 rounded-lg text-white font-bold text-lg transition-all duration-200 shadow-lg ${
             isGenerating || !request.topic.trim()
               ? 'bg-slate-400 cursor-not-allowed shadow-none'
+              : provider === 'agent-platform'
+              ? 'bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 shadow-indigo-500/30 transform hover:-translate-y-0.5'
               : 'bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 shadow-teal-500/30 transform hover:-translate-y-0.5'
           }`}
         >

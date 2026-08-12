@@ -2,10 +2,21 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { InputForm } from './components/InputForm';
 import { ExamDisplay } from './components/ExamDisplay';
 import { ApiKeyModal } from './components/ApiKeyModal';
-import { Grade, QuestionType, Difficulty, ExamRequest } from './types';
-import { generateExamStream } from './services/geminiService';
+import { Grade, QuestionType, Difficulty, ExamRequest, AiProvider } from './types';
+import {
+  generateExamStream,
+  GEMINI_MODELS,
+  AGENT_PLATFORM_MODELS,
+} from './services/geminiService';
 
 const App: React.FC = () => {
+  // Provider & API Keys State
+  const [provider, setProvider] = useState<AiProvider>('gemini');
+  const [geminiKey, setGeminiKey] = useState<string>('');
+  const [agentPlatformKey, setAgentPlatformKey] = useState<string>('');
+  const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState<boolean>(false);
+
+  // Request State
   const [request, setRequest] = useState<ExamRequest>({
     subject: 'Toán',
     grade: Grade.Grade12,
@@ -14,30 +25,70 @@ const App: React.FC = () => {
     type: QuestionType.Mixed,
     difficulty: Difficulty.Mixed,
     questionCount: 10,
-    model: 'gemini-3-flash-preview', // Default model
+    model: 'gemini-3.6-flash',
   });
 
   const [generatedContent, setGeneratedContent] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [fallbackNotice, setFallbackNotice] = useState<{ from: string; to: string; reason: string } | null>(null);
 
-  // API Key State
-  const [apiKey, setApiKey] = useState<string>('');
-  const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState<boolean>(false);
-
+  // Khởi tạo Provider & Key từ LocalStorage
   useEffect(() => {
-    const storedKey = localStorage.getItem('gemini_api_key');
-    if (storedKey) {
-      setApiKey(storedKey);
-    } else {
+    let savedProvider = localStorage.getItem('google_ai_provider') as AiProvider;
+    // Chuyển đổi 'vertex' cũ về 'gemini'
+    if (savedProvider as string === 'vertex' || !savedProvider) {
+      savedProvider = 'gemini';
+      localStorage.setItem('google_ai_provider', 'gemini');
+    }
+
+    const savedGeminiKey = localStorage.getItem('gemini_api_key') || '';
+    const savedAgentKey = localStorage.getItem('agent_platform_api_key') || '';
+
+    setProvider(savedProvider);
+    setGeminiKey(savedGeminiKey);
+    setAgentPlatformKey(savedAgentKey);
+
+    const activeKey = savedProvider === 'agent-platform' ? savedAgentKey : savedGeminiKey;
+    if (!activeKey) {
       setIsApiKeyModalOpen(true);
+    }
+
+    // Đảm bảo model phù hợp với provider đã lưu
+    const validModels = savedProvider === 'agent-platform'
+      ? AGENT_PLATFORM_MODELS.map(m => m.id)
+      : GEMINI_MODELS.map(m => m.id);
+
+    if (!validModels.includes(request.model)) {
+      const defaultModel = savedProvider === 'agent-platform' ? 'gemini-2.5-flash' : 'gemini-3.6-flash';
+      setRequest(prev => ({ ...prev, model: defaultModel }));
     }
   }, []);
 
-  const handleSaveApiKey = (key: string) => {
-    setApiKey(key);
-    localStorage.setItem('gemini_api_key', key);
+  const activeApiKey = provider === 'agent-platform' ? agentPlatformKey : geminiKey;
+
+  const handleSaveApiKey = (newProvider: AiProvider, newKey: string) => {
+    setProvider(newProvider);
+    if (newProvider === 'gemini') {
+      setGeminiKey(newKey);
+    } else {
+      setAgentPlatformKey(newKey);
+    }
+
+    // Đảm bảo model phù hợp với provider mới
+    const validModels = newProvider === 'agent-platform'
+      ? AGENT_PLATFORM_MODELS.map(m => m.id)
+      : GEMINI_MODELS.map(m => m.id);
+
+    const defaultModel = newProvider === 'agent-platform' ? 'gemini-2.5-flash' : 'gemini-3.6-flash';
+
+    setRequest(prev => ({
+      ...prev,
+      model: validModels.includes(prev.model) ? prev.model : defaultModel
+    }));
+
     setIsApiKeyModalOpen(false);
+    setError(null);
   };
 
   const handleInputChange = useCallback((field: keyof ExamRequest, value: string | number) => {
@@ -45,7 +96,7 @@ const App: React.FC = () => {
   }, []);
 
   const handleGenerate = async () => {
-    if (!apiKey) {
+    if (!activeApiKey) {
       setIsApiKeyModalOpen(true);
       return;
     }
@@ -57,23 +108,31 @@ const App: React.FC = () => {
     setIsGenerating(true);
     setGeneratedContent('');
     setError(null);
+    setFallbackNotice(null);
 
     let accumulatedText = '';
     let lastUpdateTime = 0;
 
     try {
-      await generateExamStream(request, apiKey, (chunk) => {
-        accumulatedText += chunk;
-        const now = Date.now();
-        if (now - lastUpdateTime > 100) {
-          setGeneratedContent(accumulatedText);
-          lastUpdateTime = now;
+      await generateExamStream(
+        request,
+        activeApiKey,
+        provider,
+        (chunk) => {
+          accumulatedText += chunk;
+          const now = Date.now();
+          if (now - lastUpdateTime > 100) {
+            setGeneratedContent(accumulatedText);
+            lastUpdateTime = now;
+          }
+        },
+        (fromModel, toModel, reason) => {
+          setFallbackNotice({ from: fromModel, to: toModel, reason });
         }
-      });
+      );
       setGeneratedContent(accumulatedText);
     } catch (err: any) {
-      // Handle fallback errors or final failure
-      setError(err.message || "Đã xảy ra lỗi nghiêm trọng. Vui lòng kiểm tra API Key.");
+      setError(err.message || "Đã xảy ra lỗi nghiêm trọng. Vui lòng kiểm tra lại cấu hình API Key.");
     } finally {
       setIsGenerating(false);
     }
@@ -86,8 +145,10 @@ const App: React.FC = () => {
         isOpen={isApiKeyModalOpen} 
         onSave={handleSaveApiKey} 
         onClose={() => setIsApiKeyModalOpen(false)}
-        currentKey={apiKey}
-        forceRequire={!apiKey}
+        currentProvider={provider}
+        geminiKey={geminiKey}
+        agentPlatformKey={agentPlatformKey}
+        forceRequire={!activeApiKey}
       />
 
       {/* Header */}
@@ -105,11 +166,21 @@ const App: React.FC = () => {
           <div className="flex items-center gap-3">
              <button 
                onClick={() => setIsApiKeyModalOpen(true)}
-               className="flex items-center gap-2 px-3 py-1.5 rounded-full border border-teal-200 hover:bg-teal-50 text-xs font-medium transition-colors text-teal-700"
+               className={`flex items-center gap-2 px-3 py-1.5 rounded-full border text-xs font-medium transition-all ${
+                 provider === 'agent-platform'
+                   ? 'border-indigo-200 hover:bg-indigo-50 text-indigo-800'
+                   : 'border-teal-200 hover:bg-teal-50 text-teal-800'
+               }`}
              >
-               <span className={`w-2 h-2 rounded-full animate-pulse ${apiKey ? 'bg-emerald-500' : 'bg-red-500'}`}></span>
-               {apiKey ? 'Đã có API Key' : <span className="text-red-500 font-bold">Nhập API Key</span>}
-               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-teal-400"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+               <span className={`w-2 h-2 rounded-full animate-pulse ${activeApiKey ? 'bg-emerald-500' : 'bg-rose-500'}`}></span>
+               <span>{provider === 'agent-platform' ? 'Agent Platform API' : 'Google Gemini API'}</span>
+               <span className="text-slate-400">|</span>
+               {activeApiKey ? (
+                 <span className="font-semibold text-emerald-600">Đã có Key</span>
+               ) : (
+                 <span className="font-semibold text-rose-600">Nhập API Key</span>
+               )}
+               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-400"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.1a2 2 0 0 1-1-1.72v-.51a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
              </button>
           </div>
         </div>
@@ -123,32 +194,49 @@ const App: React.FC = () => {
           <div className="lg:col-span-4 space-y-6">
             <InputForm 
               request={request}
+              provider={provider}
               onChange={handleInputChange}
               onSubmit={handleGenerate}
               isGenerating={isGenerating}
             />
 
             {/* Helper Info Card */}
-            <div className="bg-teal-50 border border-teal-200 rounded-xl p-5 shadow-sm">
-              <h4 className="text-teal-900 font-bold mb-2 flex items-center gap-2">
+            <div className="bg-teal-50/80 border border-teal-200 rounded-xl p-5 shadow-sm space-y-2">
+              <h4 className="text-teal-900 font-bold flex items-center gap-2 text-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-teal-600"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                Hệ thống tự động
+                Hệ thống Fallback & Nhà cung cấp
               </h4>
-              <ul className="text-sm text-teal-800 space-y-2 list-disc list-inside font-medium">
-                <li>Nếu Model bạn chọn bị quá tải, hệ thống sẽ <strong className="text-teal-900">tự động chuyển</strong> sang Model khác để đảm bảo bạn luôn nhận được kết quả.</li>
-                <li>Key của bạn được lưu an toàn trên trình duyệt này.</li>
+              <ul className="text-xs text-teal-800 space-y-2 list-disc list-inside font-medium leading-relaxed">
+                <li>Hỗ trợ chuyển đổi giữa <strong className="text-teal-950">Google Gemini API</strong> và <strong className="text-teal-950">Agent Platform API</strong>.</li>
+                <li>Nếu Model bạn chọn bị quá tải hoặc tạm gián đoạn, hệ thống sẽ <strong className="text-teal-950">tự động chuyển sang Model dự phòng</strong>.</li>
+                <li>Key được mã hóa an toàn trong LocalStorage của trình duyệt.</li>
               </ul>
             </div>
           </div>
 
           {/* Right Column: Output */}
-          <div className="lg:col-span-8">
+          <div className="lg:col-span-8 space-y-4">
+
+            {/* Fallback Warning Notice */}
+            {fallbackNotice && (
+              <div className="bg-amber-50 border border-amber-200 text-amber-900 px-4 py-3 rounded-xl flex items-start gap-3 shadow-sm text-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-600 mt-0.5 min-w-[20px]"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                <div>
+                  <p className="font-bold">Đã tự động chuyển đổi Model ({fallbackNotice.reason})</p>
+                  <p className="text-xs mt-0.5">
+                    Model gốc <code className="bg-amber-100 px-1 py-0.5 rounded text-amber-950 font-bold">{fallbackNotice.from}</code> bị quá tải, hệ thống đã chuyển sang <code className="bg-amber-100 px-1 py-0.5 rounded text-amber-950 font-bold">{fallbackNotice.to}</code> để tiếp tục xử lý.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Error Message */}
             {error && (
-              <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-start gap-3 shadow-sm">
-                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-500 mt-0.5 min-w-[20px]"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+              <div className="bg-rose-50 border border-rose-200 text-rose-800 px-4 py-3.5 rounded-xl flex items-start gap-3 shadow-sm">
+                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-rose-500 mt-0.5 min-w-[20px]"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
                  <div className="flex-1">
-                   <p className="font-bold">Đã xảy ra lỗi</p>
-                   <p className="text-sm mt-1">{error}</p>
+                   <p className="font-bold text-sm">Đã xảy ra lỗi</p>
+                   <p className="text-xs mt-1 leading-relaxed">{error}</p>
                  </div>
               </div>
             )}
