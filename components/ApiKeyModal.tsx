@@ -142,7 +142,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-teal-600"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                 Google Gemini API (AI Studio)
               </p>
-              <p>Key chuẩn sử dụng cho các model Gemini 3.6 Flash, 3.5 Flash, 2.5 Pro...</p>
+              <p>Key chuẩn sử dụng cho các model Gemini 3.8 Flash, 3.7 Flash, 3.5 Flash...</p>
               <p>Lấy API Key miễn phí tại: <a href="https://aistudio.google.com/apikey" target="_blank" rel="noreferrer" className="underline font-bold text-teal-700 hover:text-teal-900">Google AI Studio (aistudio.google.com)</a></p>
             </div>
           ) : (

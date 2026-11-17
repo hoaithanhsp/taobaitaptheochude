@@ -29,14 +29,14 @@ export const createGoogleAiClient = (
 // Danh sách Model hỗ trợ cho Google Gemini API
 export const GEMINI_MODELS = [
   {
-    id: 'gemini-3.6-flash',
-    name: 'Gemini 3.6 Flash',
+    id: 'gemini-3.8-flash',
+    name: 'Gemini 3.8 Flash',
     desc: 'Mặc định; siêu nhanh, thông minh & tối ưu',
     badge: 'Khuyên dùng'
   },
   {
-    id: 'gemini-3.5-flash',
-    name: 'Gemini 3.5 Flash',
+    id: 'gemini-3.7-flash',
+    name: 'Gemini 3.7 Flash',
     desc: 'Chất lượng cao, dự phòng chuẩn'
   },
   {
@@ -45,21 +45,33 @@ export const GEMINI_MODELS = [
     desc: 'Tốc độ cao, tối ưu chi phí'
   },
   {
-    id: 'gemini-2.5-pro',
-    name: 'Gemini 2.5 Pro',
-    desc: 'Suy luận logic chuyên sâu'
+    id: 'gemini-3.6-flash',
+    name: 'Gemini 3.6 Flash',
+    desc: 'Dự phòng bổ sung khi cần'
+  },
+  {
+    id: 'gemini-3.5-flash',
+    name: 'Gemini 3.5 Flash',
+    desc: 'Phiên bản ổn định, tiết kiệm'
+  },
+  {
+    id: 'gemini-3.1-flash-lite',
+    name: 'Gemini 3.1 Flash Lite',
+    desc: 'Tối ưu chi phí, nhẹ'
   },
   {
     id: 'gemini-2.5-flash',
     name: 'Gemini 2.5 Flash',
-    desc: 'Phiên bản ổn định, tiết kiệm'
+    desc: 'Lựa chọn cuối cùng ổn định'
   }
 ];
 
 export const GEMINI_FALLBACK_CHAIN = [
+  'gemini-3.8-flash',
+  'gemini-3.7-flash',
+  'gemini-3.5-flash-lite',
   'gemini-3.6-flash',
   'gemini-3.5-flash',
-  'gemini-3.5-flash-lite',
   'gemini-3.1-flash-lite',
   'gemini-2.5-flash'
 ];
@@ -81,11 +93,6 @@ export const AGENT_PLATFORM_MODELS = [
     id: 'gemini-2.5-pro',
     name: 'Gemini 2.5 Pro',
     desc: 'Suy luận nâng cao'
-  },
-  {
-    id: 'gemini-3.1-pro-preview',
-    name: 'Gemini 3.1 Pro Preview',
-    desc: 'Thế hệ mới (Preview)'
   }
 ];
 
@@ -102,7 +109,7 @@ export const getOrderedModels = (selectedModel: string, provider: AiProvider): s
     ? AGENT_PLATFORM_MODELS.map(m => m.id)
     : GEMINI_MODELS.map(m => m.id);
 
-  const defaultModel = isAgentPlatform ? 'gemini-2.5-flash' : 'gemini-3.6-flash';
+  const defaultModel = isAgentPlatform ? 'gemini-2.5-flash' : 'gemini-3.8-flash';
   const initialModel = validModelIds.includes(selectedModel) ? selectedModel : defaultModel;
 
   const rawList = [initialModel, ...fallbackChain];
@@ -218,16 +225,19 @@ export const generateExamStream = async (
   for (let i = 0; i < modelsToTry.length; i++) {
     const currentModel = modelsToTry[i];
     try {
-      console.log(`[${provider}] Attempting generation with model: ${currentModel}`);
+      console.info(`[${provider}] Attempting generation with model: ${currentModel}`);
 
       const config: any = {
         systemInstruction: SYSTEM_INSTRUCTION,
         maxOutputTokens: 8192,
       };
 
-      // Chỉ thêm thinkingConfig cho model Gemini 3
+      // Chỉ thêm thinkingConfig cho model Gemini 3, và chỉ dùng low/medium/high
       if (currentModel.includes('gemini-3')) {
-        config.thinkingConfig = { thinkingLevel: 'HIGH' };
+        config.thinkingConfig = { thinkingLevel: 'high' };
+        delete config.temperature;
+        delete config.topP;
+        delete config.topK;
       }
 
       const responseStream = await ai.models.generateContentStream({
@@ -252,17 +262,17 @@ export const generateExamStream = async (
       return;
 
     } catch (error: any) {
-      console.warn(`[${provider}] Model ${currentModel} failed:`, error);
+      console.warn(`[${provider}] Model ${currentModel} failed:`);
       lastError = error;
 
       const errorType = parseApiError(error);
 
-      // Các lỗi nghiêm trọng -> Dừng ngay không fallback
+      // Các lỗi nghiêm trọng -> chỉ dừng ngay khi chắc chắn là key sai hoặc bị chặn
       if (errorType === 'API_KEY_INVALID') {
         throw new Error("API Key không hợp lệ hoặc đã hết hạn. Vui lòng kiểm tra lại trong Cài đặt.");
       }
       if (errorType === 'QUOTA_EXCEEDED') {
-        throw new Error("Đã hết quota hoặc vượt giới hạn tốc độ API. Vui lòng đợi rồi thử lại.");
+        throw new Error("Đã vượt quota hoặc bị giới hạn tốc độ API. Vui lòng đợi rồi thử lại.");
       }
       if (errorType === 'PERMISSION_DENIED') {
         if (provider === 'agent-platform') {
@@ -283,10 +293,10 @@ export const generateExamStream = async (
         throw new Error(`Yêu cầu không hợp lệ (${error.message || 'INVALID_ARGUMENT'}).`);
       }
 
-      // Nếu lỗi cho phép fallback (Quá tải, 500, 503, NOT_FOUND...) và còn model tiếp theo
+      // Nếu lỗi cho phép fallback (502/503/504/500, NOT_FOUND...) và còn model tiếp theo
       if (i < modelsToTry.length - 1) {
         const nextModel = modelsToTry[i + 1];
-        const reason = errorType === 'NOT_FOUND' ? 'Model không khả dụng' : 'Model đang quá tải';
+        const reason = errorType === 'NOT_FOUND' ? 'Model không khả dụng' : 'Model đang tạm thời lỗi hoặc quá tải';
         console.info(`[${provider}] Fallback triggered: ${currentModel} -> ${nextModel} (${reason})`);
         if (onModelFallback) {
           onModelFallback(currentModel, nextModel, reason);
