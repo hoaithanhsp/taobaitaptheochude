@@ -25,7 +25,7 @@ const App: React.FC = () => {
     type: QuestionType.Mixed,
     difficulty: Difficulty.Mixed,
     questionCount: 10,
-    model: 'gemini-3.6-flash',
+    model: 'gemini-3.8-flash',
   });
 
   const [generatedContent, setGeneratedContent] = useState<string>('');
@@ -60,7 +60,7 @@ const App: React.FC = () => {
       : GEMINI_MODELS.map(m => m.id);
 
     if (!validModels.includes(request.model)) {
-      const defaultModel = savedProvider === 'agent-platform' ? 'gemini-2.5-flash' : 'gemini-3.6-flash';
+      const defaultModel = savedProvider === 'agent-platform' ? 'gemini-2.5-flash' : 'gemini-3.8-flash';
       setRequest(prev => ({ ...prev, model: defaultModel }));
     }
   }, []);
@@ -80,7 +80,7 @@ const App: React.FC = () => {
       ? AGENT_PLATFORM_MODELS.map(m => m.id)
       : GEMINI_MODELS.map(m => m.id);
 
-    const defaultModel = newProvider === 'agent-platform' ? 'gemini-2.5-flash' : 'gemini-3.6-flash';
+    const defaultModel = newProvider === 'agent-platform' ? 'gemini-2.5-flash' : 'gemini-3.8-flash';
 
     setRequest(prev => ({
       ...prev,
@@ -132,7 +132,7 @@ const App: React.FC = () => {
       );
       setGeneratedContent(accumulatedText);
     } catch (err: any) {
-      setError(err.message || "Đã xảy ra lỗi nghiêm trọng. Vui lòng kiểm tra lại cấu hình API Key.");
+      setError(err.message || "Đã xảy ra lỗi nghiêm trọng. Vui lòng thử lại sau.");
     } finally {
       setIsGenerating(false);
     }
